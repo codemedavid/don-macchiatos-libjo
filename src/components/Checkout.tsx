@@ -65,7 +65,7 @@ ${serviceType === 'delivery' ? `🏠 Address: ${address}` : ''}
 ${serviceType === 'pickup' ? `⏰ Pickup Time: ${timeInfo}` : ''}
 
 📋 ORDER DETAILS:
-${cartItems.map(item => `• ${item.name} x${item.quantity} - ₱${item.price * item.quantity}`).join('\n')}
+${cartItems.map(item => `• ${item.name} x${item.quantity} - ₱${parseFloat(item.price * item.quantity)}`).join('\n')}
 
 💰 TOTAL: ₱${parseFloat(totalPrice)}
 
