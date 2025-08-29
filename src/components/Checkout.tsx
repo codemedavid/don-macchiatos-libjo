@@ -54,7 +54,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack }) =>
     const timeInfo = serviceType === 'pickup' 
       ? (pickupTime === 'custom' ? customTime : `${pickupTime} minutes`)
       : '';
-    const price = parseInt(item.price);
+    const price = parseInt(item.priceasdasd);
     const item = parseInt(item.quantity);
     console.log(item)
     const total = price * item;
