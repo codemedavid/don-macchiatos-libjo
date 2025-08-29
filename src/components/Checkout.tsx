@@ -81,6 +81,7 @@ Please confirm this order to proceed. Thank you for choosing Beracah Cafe! ☕
     const messengerUrl = `https://m.me/BeracahCafe?text=${encodedMessage}`;
     
     window.open(messengerUrl, '_blank');
+    
   };
 
   const isDetailsValid = customerName && contactNumber && (serviceType !== 'delivery' || address) && (serviceType !== 'pickup' || (pickupTime !== 'custom' || customTime));
