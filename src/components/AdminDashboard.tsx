@@ -5,7 +5,9 @@ import { categories, addOnCategories } from '../data/menuData';
 import { useMenu } from '../hooks/useMenu';
 
 const AdminDashboard: React.FC = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return localStorage.getItem('beracah_admin_auth') === 'true';
+  });
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
   const { menuItems, loading, addMenuItem, updateMenuItem, deleteMenuItem } = useMenu();
@@ -136,6 +138,7 @@ const AdminDashboard: React.FC = () => {
     e.preventDefault();
     if (password === 'BeracahCafe@Admin!2025') {
       setIsAuthenticated(true);
+      localStorage.setItem('beracah_admin_auth', 'true');
       setLoginError('');
     } else {
       setLoginError('Invalid password');
@@ -144,6 +147,7 @@ const AdminDashboard: React.FC = () => {
 
   const handleLogout = () => {
     setIsAuthenticated(false);
+    localStorage.removeItem('beracah_admin_auth');
     setPassword('');
     setCurrentView('dashboard');
   };
