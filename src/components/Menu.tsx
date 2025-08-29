@@ -70,9 +70,8 @@ const Menu: React.FC<MenuProps> = ({ menuItems, addToCart, cartItems, updateQuan
 
       {categories.map((category) => {
         const categoryItems = menuItems.filter(item => item.category === category.id);
-        const availableItems = categoryItems.filter(item => item.available !== false);
         
-        if (availableItems.length === 0) return null;
+        if (categoryItems.length === 0) return null;
         
         return (
           <section key={category.id} id={category.id} className="mb-16">
@@ -82,7 +81,7 @@ const Menu: React.FC<MenuProps> = ({ menuItems, addToCart, cartItems, updateQuan
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {availableItems.map((item) => {
+              {categoryItems.map((item) => {
                 const cartItem = cartItems.find(cartItem => cartItem.id === item.id);
                 return (
                   <MenuItemCard
