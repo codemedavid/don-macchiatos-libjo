@@ -56,6 +56,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack }) =>
       : '';
     const price = parseInt(item.price);
     const item = parseInt(item.quantity);
+    console.log(item)
     const total = price * item;
     const orderDetails = `
 🛒 BERACAH CAFE ORDER
