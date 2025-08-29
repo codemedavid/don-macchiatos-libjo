@@ -64,8 +64,16 @@ const Cart: React.FC<CartProps> = ({
             <div className="flex items-center justify-between">
               <div className="flex-1">
                 <h3 className="text-lg font-playfair font-medium text-black mb-1">{item.name}</h3>
+                {item.selectedVariation && (
+                  <p className="text-sm text-gray-500 mb-1">Size: {item.selectedVariation.name}</p>
+                )}
+                {item.selectedAddOns && item.selectedAddOns.length > 0 && (
+                  <p className="text-sm text-gray-500 mb-1">
+                    Add-ons: {item.selectedAddOns.map(addOn => addOn.name).join(', ')}
+                  </p>
+                )}
                 <p className="text-gray-600 text-sm mb-2">{item.description}</p>
-                <p className="text-lg font-semibold text-black">₱{item.price} each</p>
+                <p className="text-lg font-semibold text-black">₱{item.totalPrice} each</p>
               </div>
               
               <div className="flex items-center space-x-4 ml-4">
@@ -86,7 +94,7 @@ const Cart: React.FC<CartProps> = ({
                 </div>
                 
                 <div className="text-right">
-                  <p className="text-lg font-semibold text-black">₱{item.price * item.quantity}</p>
+                  <p className="text-lg font-semibold text-black">₱{item.totalPrice * item.quantity}</p>
                 </div>
                 
                 <button

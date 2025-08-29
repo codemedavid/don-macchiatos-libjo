@@ -6,12 +6,13 @@ import Menu from './components/Menu';
 import Cart from './components/Cart';
 import Checkout from './components/Checkout';
 import FloatingCartButton from './components/FloatingCartButton';
+import AdminDashboard from './components/AdminDashboard';
 
 function App() {
   const cart = useCart();
-  const [currentView, setCurrentView] = React.useState<'menu' | 'cart' | 'checkout'>('menu');
+  const [currentView, setCurrentView] = React.useState<'menu' | 'cart' | 'checkout' | 'admin'>('menu');
 
-  const handleViewChange = (view: 'menu' | 'cart' | 'checkout') => {
+  const handleViewChange = (view: 'menu' | 'cart' | 'checkout' | 'admin') => {
     setCurrentView(view);
   };
 
@@ -21,6 +22,7 @@ function App() {
         cartItemsCount={cart.getTotalItems()}
         onCartClick={() => handleViewChange('cart')}
         onMenuClick={() => handleViewChange('menu')}
+        onAdminClick={() => handleViewChange('admin')}
       />
       
       {currentView === 'menu' && (
@@ -51,6 +53,12 @@ function App() {
           cartItems={cart.cartItems}
           totalPrice={cart.getTotalPrice()}
           onBack={() => handleViewChange('cart')}
+        />
+      )}
+      
+      {currentView === 'admin' && (
+        <AdminDashboard 
+          onBack={() => handleViewChange('menu')}
         />
       )}
       

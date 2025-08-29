@@ -1,15 +1,33 @@
+export interface Variation {
+  id: string;
+  name: string;
+  price: number;
+}
+
+export interface AddOn {
+  id: string;
+  name: string;
+  price: number;
+  category: string;
+}
+
 export interface MenuItem {
   id: string;
   name: string;
   description: string;
-  price: number;
+  basePrice: number;
   category: string;
   image?: string;
   popular?: boolean;
+  variations?: Variation[];
+  addOns?: AddOn[];
 }
 
 export interface CartItem extends MenuItem {
   quantity: number;
+  selectedVariation?: Variation;
+  selectedAddOns?: AddOn[];
+  totalPrice: number;
 }
 
 export interface OrderData {

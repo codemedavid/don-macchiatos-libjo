@@ -1,13 +1,14 @@
 import React from 'react';
-import { ShoppingCart, Coffee } from 'lucide-react';
+import { ShoppingCart, Settings } from 'lucide-react';
 
 interface HeaderProps {
   cartItemsCount: number;
   onCartClick: () => void;
   onMenuClick: () => void;
+  onAdminClick?: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ cartItemsCount, onCartClick, onMenuClick }) => {
+const Header: React.FC<HeaderProps> = ({ cartItemsCount, onCartClick, onMenuClick, onAdminClick }) => {
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-beige-200 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -27,17 +28,27 @@ const Header: React.FC<HeaderProps> = ({ cartItemsCount, onCartClick, onMenuClic
             <a href="#food" className="text-gray-700 hover:text-black transition-colors duration-200">Food</a>
           </nav>
           
-          <button 
-            onClick={onCartClick}
-            className="relative p-2 text-gray-700 hover:text-black hover:bg-beige-100 rounded-full transition-all duration-200"
-          >
-            <ShoppingCart className="h-6 w-6" />
-            {cartItemsCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-black text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-bounce-gentle">
-                {cartItemsCount}
-              </span>
+          <div className="flex items-center space-x-2">
+            {onAdminClick && (
+              <button 
+                onClick={onAdminClick}
+                className="p-2 text-gray-700 hover:text-black hover:bg-beige-100 rounded-full transition-all duration-200"
+              >
+                <Settings className="h-5 w-5" />
+              </button>
             )}
-          </button>
+            <button 
+              onClick={onCartClick}
+              className="relative p-2 text-gray-700 hover:text-black hover:bg-beige-100 rounded-full transition-all duration-200"
+            >
+              <ShoppingCart className="h-6 w-6" />
+              {cartItemsCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-black text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-bounce-gentle">
+                  {cartItemsCount}
+                </span>
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </header>

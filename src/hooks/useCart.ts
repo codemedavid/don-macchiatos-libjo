@@ -1,22 +1,48 @@
 import { useState, useCallback } from 'react';
-import { CartItem, MenuItem } from '../types';
+import { CartItem, MenuItem, Variation, AddOn } from '../types';
 
 export const useCart = () => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
 
-  const addToCart = useCallback((item: MenuItem, quantity: number = 1) => {
+  const calculateItemPrice = (item: MenuItem, variation?: Variation, addOns?: AddOn[]) => {
+    let price = item.basePrice;
+    if (variation) {
+      price += variation.price;
+    }
+    if (addOns) {
+      addOns.forEach(addOn => {
+        price += addOn.price;
+      });
+    }
+    return price;
+  };
+
+  const addToCart = useCallback((item: MenuItem, quantity: number = 1, variation?: Variation, addOns?: AddOn[]) => {
+    const totalPrice = calculateItemPrice(item, variation, addOns);
+    const cartItemId = `${item.id}-${variation?.id || 'default'}-${addOns?.map(a => a.id).join(',') || 'none'}`;
+    
     setCartItems(prev => {
-      const existingItem = prev.find(cartItem => cartItem.id === item.id);
+      const existingItem = prev.find(cartItem => 
+        cartItem.id === item.id && 
+        cartItem.selectedVariation?.id === variation?.id &&
+        JSON.stringify(cartItem.selectedAddOns?.map(a => a.id).sort()) === JSON.stringify(addOns?.map(a => a.id).sort())
+      );
       
       if (existingItem) {
         return prev.map(cartItem =>
-          cartItem.id === item.id
+          cartItem === existingItem
             ? { ...cartItem, quantity: cartItem.quantity + quantity }
             : cartItem
         );
       } else {
-        return [...prev, { ...item, quantity }];
+        return [...prev, { 
+          ...item, 
+          quantity,
+          selectedVariation: variation,
+          selectedAddOns: addOns || [],
+          totalPrice
+        }];
       }
     });
   }, []);
@@ -43,7 +69,7 @@ export const useCart = () => {
   }, []);
 
   const getTotalPrice = useCallback(() => {
-    return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
+    return cartItems.reduce((total, item) => total + (item.totalPrice * item.quantity), 0);
   }, [cartItems]);
 
   const getTotalItems = useCallback(() => {

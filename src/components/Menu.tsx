@@ -5,7 +5,7 @@ import MenuItemCard from './MenuItemCard';
 import MobileNav from './MobileNav';
 
 interface MenuProps {
-  addToCart: (item: MenuItem, quantity?: number) => void;
+  addToCart: (item: MenuItem, quantity?: number, variation?: any, addOns?: any[]) => void;
   cartItems: CartItem[];
   updateQuantity: (id: string, quantity: number) => void;
 }
