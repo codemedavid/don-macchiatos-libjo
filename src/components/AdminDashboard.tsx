@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
-import { Plus, Edit, Trash2, Save, X, ArrowLeft, Coffee, TrendingUp, Package, Users } from 'lucide-react';
+import { Plus, Edit, Trash2, Save, X, ArrowLeft, Coffee, TrendingUp, Package, Users, Lock } from 'lucide-react';
 import { MenuItem, Variation, AddOn } from '../types';
 import { categories, addOnCategories } from '../data/menuData';
 import { useMenu } from '../hooks/useMenu';
 
 const AdminDashboard: React.FC = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [password, setPassword] = useState('');
+  const [loginError, setLoginError] = useState('');
   const { menuItems, loading, addMenuItem, updateMenuItem, deleteMenuItem } = useMenu();
   const [currentView, setCurrentView] = useState<'dashboard' | 'items' | 'add' | 'edit'>('dashboard');
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
@@ -14,6 +17,7 @@ const AdminDashboard: React.FC = () => {
     basePrice: 0,
     category: 'hot-coffee',
     popular: false,
+    available: true,
     variations: [],
     addOns: []
   });
@@ -26,6 +30,7 @@ const AdminDashboard: React.FC = () => {
       basePrice: 0,
       category: 'hot-coffee',
       popular: false,
+      available: true,
       variations: [],
       addOns: []
     });
@@ -121,10 +126,68 @@ const AdminDashboard: React.FC = () => {
   // Dashboard Stats
   const totalItems = menuItems.length;
   const popularItems = menuItems.filter(item => item.popular).length;
+  const availableItems = menuItems.filter(item => item.available).length;
   const categoryCounts = categories.map(cat => ({
     ...cat,
     count: menuItems.filter(item => item.category === cat.id).length
   }));
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (password === 'BeracahCafe@Admin!2025') {
+      setIsAuthenticated(true);
+      setLoginError('');
+    } else {
+      setLoginError('Invalid password');
+    }
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    setPassword('');
+    setCurrentView('dashboard');
+  };
+
+  // Login Screen
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-md">
+          <div className="text-center mb-8">
+            <div className="mx-auto w-16 h-16 bg-black rounded-full flex items-center justify-center mb-4">
+              <Lock className="h-8 w-8 text-white" />
+            </div>
+            <h1 className="text-2xl font-playfair font-semibold text-black">Admin Access</h1>
+            <p className="text-gray-600 mt-2">Enter password to access the admin dashboard</p>
+          </div>
+          
+          <form onSubmit={handleLogin}>
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-black mb-2">Password</label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
+                placeholder="Enter admin password"
+                required
+              />
+              {loginError && (
+                <p className="text-red-500 text-sm mt-2">{loginError}</p>
+              )}
+            </div>
+            
+            <button
+              type="submit"
+              className="w-full bg-black text-white py-3 rounded-lg hover:bg-gray-800 transition-colors duration-200 font-medium"
+            >
+              Access Dashboard
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -223,6 +286,18 @@ const AdminDashboard: React.FC = () => {
                     className="rounded border-gray-300 text-black focus:ring-black"
                   />
                   <span className="text-sm font-medium text-black">Mark as Popular</span>
+                </label>
+              </div>
+
+              <div className="flex items-center">
+                <label className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    checked={formData.available ?? true}
+                    onChange={(e) => setFormData({ ...formData, available: e.target.checked })}
+                    className="rounded border-gray-300 text-black focus:ring-black"
+                  />
+                  <span className="text-sm font-medium text-black">Available for Order</span>
                 </label>
               </div>
             </div>
@@ -369,7 +444,7 @@ const AdminDashboard: React.FC = () => {
                     <th className="px-6 py-4 text-left text-sm font-medium text-gray-900">Base Price</th>
                     <th className="px-6 py-4 text-left text-sm font-medium text-gray-900">Variations</th>
                     <th className="px-6 py-4 text-left text-sm font-medium text-gray-900">Add-ons</th>
-                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-900">Popular</th>
+                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-900">Status</th>
                     <th className="px-6 py-4 text-left text-sm font-medium text-gray-900">Actions</th>
                   </tr>
                 </thead>
@@ -393,11 +468,20 @@ const AdminDashboard: React.FC = () => {
                         {item.addOns?.length || 0} add-ons
                       </td>
                       <td className="px-6 py-4">
-                        {item.popular && (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-black text-white">
-                            Popular
+                        <div className="flex flex-col space-y-1">
+                          {item.popular && (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-black text-white">
+                              Popular
+                            </span>
+                          )}
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            item.available 
+                              ? 'bg-green-100 text-green-800' 
+                              : 'bg-red-100 text-red-800'
+                          }`}>
+                            {item.available ? 'Available' : 'Unavailable'}
                           </span>
-                        )}
+                        </div>
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center space-x-2">
@@ -436,12 +520,20 @@ const AdminDashboard: React.FC = () => {
               <Coffee className="h-8 w-8 text-black" />
               <h1 className="text-2xl font-playfair font-semibold text-black">Beracah Cafe Admin</h1>
             </div>
-            <a
-              href="/"
-              className="text-gray-600 hover:text-black transition-colors duration-200"
-            >
-              View Website
-            </a>
+            <div className="flex items-center space-x-4">
+              <a
+                href="/"
+                className="text-gray-600 hover:text-black transition-colors duration-200"
+              >
+                View Website
+              </a>
+              <button
+                onClick={handleLogout}
+                className="text-gray-600 hover:text-black transition-colors duration-200"
+              >
+                Logout
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -463,24 +555,24 @@ const AdminDashboard: React.FC = () => {
 
           <div className="bg-white rounded-xl shadow-sm p-6">
             <div className="flex items-center">
-              <div className="p-2 bg-yellow-500 rounded-lg">
+              <div className="p-2 bg-green-500 rounded-lg">
                 <TrendingUp className="h-6 w-6 text-white" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Popular Items</p>
-                <p className="text-2xl font-semibold text-gray-900">{popularItems}</p>
+                <p className="text-sm font-medium text-gray-600">Available Items</p>
+                <p className="text-2xl font-semibold text-gray-900">{availableItems}</p>
               </div>
             </div>
           </div>
 
           <div className="bg-white rounded-xl shadow-sm p-6">
             <div className="flex items-center">
-              <div className="p-2 bg-green-500 rounded-lg">
+              <div className="p-2 bg-yellow-500 rounded-lg">
                 <Coffee className="h-6 w-6 text-white" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Categories</p>
-                <p className="text-2xl font-semibold text-gray-900">{categories.length}</p>
+                <p className="text-sm font-medium text-gray-600">Popular Items</p>
+                <p className="text-2xl font-semibold text-gray-900">{popularItems}</p>
               </div>
             </div>
           </div>
