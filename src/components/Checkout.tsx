@@ -67,6 +67,7 @@ ${serviceType === 'pickup' ? `⏰ Pickup Time: ${timeInfo}` : ''}
 
 📋 ORDER DETAILS:
 ${cartItems.map(item => `• ${item.name} x${item.quantity} - ₱${item.price * item.quantity}`).join('\n')}
+${cartItems.map(item => `• ${item.name} x${item.quantity} - ₱${item.totalPrice * item.quantity}`).join('\n')}
 
 💰 TOTAL: ₱${parseFloat(totalPrice)}
 
@@ -371,9 +372,9 @@ Please confirm this order to proceed. Thank you for choosing Beracah Cafe! ☕
               <div key={item.id} className="flex items-center justify-between py-2 border-b border-beige-100">
                 <div>
                   <h4 className="font-medium text-black">{item.name}</h4>
-                  <p className="text-sm text-gray-600">₱{item.price} x {item.quantity}</p>
+                  <p className="text-sm text-gray-600">₱{item.totalPrice} x {item.quantity}</p>
                 </div>
-                <span className="font-semibold text-black">₱{item.price * item.quantity}</span>
+                <span className="font-semibold text-black">₱{item.totalPrice * item.quantity}</span>
               </div>
             ))}
           </div>
