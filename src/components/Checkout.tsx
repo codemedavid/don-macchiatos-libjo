@@ -54,7 +54,6 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack }) =>
     const timeInfo = serviceType === 'pickup' 
       ? (pickupTime === 'custom' ? customTime : `${pickupTime} minutes`)
       : '';
-  
     
     const orderDetails = `
 🛒 BERACAH CAFE ORDER
@@ -67,7 +66,7 @@ ${serviceType === 'pickup' ? `⏰ Pickup Time: ${timeInfo}` : ''}
 
 
 📋 ORDER DETAILS:
-${cartItems.map(item => `• ${item.name} x${item.quantity} - ₱${total}`).join('\n')}
+${cartItems.map(item => `• ${item.name} x${item.quantity} - ₱${item.price * item.quantity}`).join('\n')}
 
 💰 TOTAL: ₱${parseFloat(totalPrice)}
 
