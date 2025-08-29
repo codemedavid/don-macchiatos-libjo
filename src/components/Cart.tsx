@@ -112,7 +112,7 @@ const Cart: React.FC<CartProps> = ({
       <div className="bg-white rounded-xl shadow-sm p-6">
         <div className="flex items-center justify-between text-2xl font-playfair font-semibold text-black mb-6">
           <span>Total:</span>
-          <span>₱{parseFloat(getTotalPrice())]}</span>
+          <span>₱{parseFloat(getTotalPrice() || 0).toFixed(2)}</span>
         </div>
         
         <button
