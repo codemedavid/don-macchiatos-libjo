@@ -16,7 +16,7 @@ const Header: React.FC<HeaderProps> = ({ cartItemsCount, onCartClick, onMenuClic
             onClick={onMenuClick}
             className="flex items-center space-x-2 text-black hover:text-cream-600 transition-colors duration-200"
           >
-            <Coffee className="h-8 w-8" />
+            
             <h1 className="text-2xl font-playfair font-semibold">Beracah Cafe</h1>
           </button>
           
