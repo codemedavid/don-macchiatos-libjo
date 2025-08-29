@@ -78,7 +78,7 @@ Please confirm this order to proceed. Thank you for choosing Beracah Cafe! ☕
     `.trim();
 
     const encodedMessage = encodeURIComponent(orderDetails);
-    const messengerUrl = `https://m.me/61575492920003?text=${encodedMessage}`;
+    const messengerUrl = `https://m.me/BeracahCafe?text=${encodedMessage}`;
     
     window.open(messengerUrl, '_blank');
   };
