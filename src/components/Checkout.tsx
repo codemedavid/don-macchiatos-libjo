@@ -239,7 +239,7 @@ Please confirm this order to proceed. Thank you for choosing Beracah Cafe! ☕
                     required
                   />
                 </div>
-              )}asdas
+              )}
 
               {/* Special Notes */}
               <div>
