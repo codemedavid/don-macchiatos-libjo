@@ -54,12 +54,30 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack }) =>
     const timeInfo = serviceType === 'pickup' 
       ? (pickupTime === 'custom' ? customTime : `${pickupTime} minutes`)
       : '';
-    const price = parseInt(item.price);
-    const item = parseInt(item.quantity);
+  
     
-    const total = price * item;
-    
+    const orderDetails = `
+🛒 BERACAH CAFE ORDER
 
+👤 Customer: ${customerName}
+📞 Contact: ${contactNumber}
+📍 Service: ${serviceType.charAt(0).toUpperCase() + serviceType.slice(1)}
+${serviceType === 'delivery' ? `🏠 Address: ${address}` : ''}
+${serviceType === 'pickup' ? `⏰ Pickup Time: ${timeInfo}` : ''}
+
+
+📋 ORDER DETAILS:
+${cartItems.map(item => `• ${item.name} x${item.quantity} - ₱${total}`).join('\n')}
+
+💰 TOTAL: ₱${parseFloat(totalPrice)}
+
+💳 Payment: ${paymentDetails[paymentMethod].name}
+🔗 Reference: ${referenceNumber}
+
+${notes ? `📝 Notes: ${notes}` : ''}
+
+Please confirm this order to proceed. Thank you for choosing Beracah Cafe! ☕
+    `.trim();
 
     const encodedMessage = encodeURIComponent(orderDetails);
     const messengerUrl = `https://m.me/BeracahCafeUptown?text=${encodedMessage}`;
