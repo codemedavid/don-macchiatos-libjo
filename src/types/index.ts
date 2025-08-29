@@ -19,6 +19,7 @@ export interface MenuItem {
   category: string;
   image?: string;
   popular?: boolean;
+  available?: boolean;
   variations?: Variation[];
   addOns?: AddOn[];
 }

@@ -20,6 +20,7 @@ export type Database = {
           base_price: number;
           category: string;
           popular: boolean;
+          available: boolean;
           image_url: string | null;
           created_at: string;
           updated_at: string;
@@ -31,6 +32,7 @@ export type Database = {
           base_price: number;
           category: string;
           popular?: boolean;
+          available?: boolean;
           image_url?: string | null;
           created_at?: string;
           updated_at?: string;
@@ -42,6 +44,7 @@ export type Database = {
           base_price?: number;
           category?: string;
           popular?: boolean;
+          available?: boolean;
           image_url?: string | null;
           created_at?: string;
           updated_at?: string;

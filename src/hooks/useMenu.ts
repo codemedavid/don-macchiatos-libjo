@@ -30,6 +30,7 @@ export const useMenu = () => {
         basePrice: item.base_price,
         category: item.category,
         popular: item.popular,
+        available: item.available ?? true,
         image: item.image_url || undefined,
         variations: item.variations?.map(v => ({
           id: v.id,
@@ -65,6 +66,7 @@ export const useMenu = () => {
           base_price: item.basePrice,
           category: item.category,
           popular: item.popular || false,
+          available: item.available ?? true,
           image_url: item.image || null
         })
         .select()
@@ -122,6 +124,7 @@ export const useMenu = () => {
           base_price: updates.basePrice,
           category: updates.category,
           popular: updates.popular,
+          available: updates.available,
           image_url: updates.image || null
         })
         .eq('id', id);

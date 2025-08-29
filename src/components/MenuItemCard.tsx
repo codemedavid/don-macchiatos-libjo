@@ -24,7 +24,7 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
   const calculatePrice = () => {
     let price = item.basePrice;
     if (selectedVariation) {
-      price += selectedVariation.price;
+      price = item.basePrice + selectedVariation.price;
     }
     selectedAddOns.forEach(addOn => {
       price += addOn.price;
@@ -78,10 +78,16 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
 
   return (
     <>
-      <div className="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden group animate-scale-in">
+      <div className={`bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden group animate-scale-in ${!item.available ? 'opacity-60' : ''}`}>
         {item.popular && (
           <div className="bg-black text-white text-xs font-medium px-3 py-1 rounded-full absolute top-4 right-4 z-10">
             Popular
+          </div>
+        )}
+        
+        {!item.available && (
+          <div className="bg-red-500 text-white text-xs font-medium px-3 py-1 rounded-full absolute top-4 left-4 z-10">
+            Unavailable
           </div>
         )}
         
@@ -93,7 +99,9 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
         
         <div className="p-6">
           <h4 className="text-xl font-playfair font-medium text-black mb-2">{item.name}</h4>
-          <p className="text-gray-600 text-sm mb-4 leading-relaxed">{item.description}</p>
+          <p className={`text-sm mb-4 leading-relaxed ${!item.available ? 'text-gray-400' : 'text-gray-600'}`}>
+            {!item.available ? 'Currently Unavailable' : item.description}
+          </p>
           
           <div className="flex items-center justify-between mb-4">
             <div>
@@ -110,7 +118,14 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
               )}
             </div>
             
-            {quantity === 0 ? (
+            {!item.available ? (
+              <button
+                disabled
+                className="bg-gray-300 text-gray-500 px-6 py-2 rounded-full cursor-not-allowed font-medium"
+              >
+                Unavailable
+              </button>
+            ) : quantity === 0 ? (
               <button
                 onClick={handleAddToCart}
                 className="bg-black text-white px-6 py-2 rounded-full hover:bg-gray-800 transition-all duration-200 transform hover:scale-105 font-medium"
@@ -180,7 +195,7 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
                           <span className="font-medium text-black">{variation.name}</span>
                         </div>
                         <span className="text-black font-medium">
-                          {variation.price > 0 ? `+₱${variation.price}` : 'Free'}
+                          ₱{item.basePrice + variation.price}
                         </span>
                       </label>
                     ))}
