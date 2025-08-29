@@ -1,4 +1,5 @@
 import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { useCart } from './hooks/useCart';
 import Header from './components/Header';
 import Hero from './components/Hero';
@@ -7,12 +8,14 @@ import Cart from './components/Cart';
 import Checkout from './components/Checkout';
 import FloatingCartButton from './components/FloatingCartButton';
 import AdminDashboard from './components/AdminDashboard';
+import { useMenu } from './hooks/useMenu';
 
-function App() {
+function MainApp() {
   const cart = useCart();
-  const [currentView, setCurrentView] = React.useState<'menu' | 'cart' | 'checkout' | 'admin'>('menu');
+  const { menuItems } = useMenu();
+  const [currentView, setCurrentView] = React.useState<'menu' | 'cart' | 'checkout'>('menu');
 
-  const handleViewChange = (view: 'menu' | 'cart' | 'checkout' | 'admin') => {
+  const handleViewChange = (view: 'menu' | 'cart' | 'checkout') => {
     setCurrentView(view);
   };
 
@@ -22,13 +25,13 @@ function App() {
         cartItemsCount={cart.getTotalItems()}
         onCartClick={() => handleViewChange('cart')}
         onMenuClick={() => handleViewChange('menu')}
-        onAdminClick={() => handleViewChange('admin')}
       />
       
       {currentView === 'menu' && (
         <>
           <Hero />
           <Menu 
+            menuItems={menuItems}
             addToCart={cart.addToCart}
             cartItems={cart.cartItems}
             updateQuantity={cart.updateQuantity}
@@ -56,12 +59,6 @@ function App() {
         />
       )}
       
-      {currentView === 'admin' && (
-        <AdminDashboard 
-          onBack={() => handleViewChange('menu')}
-        />
-      )}
-      
       {currentView === 'menu' && (
         <FloatingCartButton 
           itemCount={cart.getTotalItems()}
@@ -69,6 +66,17 @@ function App() {
         />
       )}
     </div>
+  );
+}
+
+function App() {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<MainApp />} />
+        <Route path="/admin" element={<AdminDashboard />} />
+      </Routes>
+    </Router>
   );
 }
 

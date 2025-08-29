@@ -1,14 +1,13 @@
 import React from 'react';
-import { ShoppingCart, Settings } from 'lucide-react';
+import { ShoppingCart } from 'lucide-react';
 
 interface HeaderProps {
   cartItemsCount: number;
   onCartClick: () => void;
   onMenuClick: () => void;
-  onAdminClick?: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ cartItemsCount, onCartClick, onMenuClick, onAdminClick }) => {
+const Header: React.FC<HeaderProps> = ({ cartItemsCount, onCartClick, onMenuClick }) => {
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-beige-200 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -29,14 +28,6 @@ const Header: React.FC<HeaderProps> = ({ cartItemsCount, onCartClick, onMenuClic
           </nav>
           
           <div className="flex items-center space-x-2">
-            {onAdminClick && (
-              <button 
-                onClick={onAdminClick}
-                className="p-2 text-gray-700 hover:text-black hover:bg-beige-100 rounded-full transition-all duration-200"
-              >
-                <Settings className="h-5 w-5" />
-              </button>
-            )}
             <button 
               onClick={onCartClick}
               className="relative p-2 text-gray-700 hover:text-black hover:bg-beige-100 rounded-full transition-all duration-200"

@@ -1,16 +1,17 @@
 import React from 'react';
-import { menuData, categories } from '../data/menuData';
+import { categories } from '../data/menuData';
 import { MenuItem, CartItem } from '../types';
 import MenuItemCard from './MenuItemCard';
 import MobileNav from './MobileNav';
 
 interface MenuProps {
+  menuItems: MenuItem[];
   addToCart: (item: MenuItem, quantity?: number, variation?: any, addOns?: any[]) => void;
   cartItems: CartItem[];
   updateQuantity: (id: string, quantity: number) => void;
 }
 
-const Menu: React.FC<MenuProps> = ({ addToCart, cartItems, updateQuantity }) => {
+const Menu: React.FC<MenuProps> = ({ menuItems, addToCart, cartItems, updateQuantity }) => {
   const [activeCategory, setActiveCategory] = React.useState('hot-coffee');
 
   const handleCategoryClick = (categoryId: string) => {
@@ -68,7 +69,7 @@ const Menu: React.FC<MenuProps> = ({ addToCart, cartItems, updateQuantity }) => 
       </div>
 
       {categories.map((category) => {
-        const categoryItems = menuData.filter(item => item.category === category.id);
+        const categoryItems = menuItems.filter(item => item.category === category.id);
         
         return (
           <section key={category.id} id={category.id} className="mb-16">
