@@ -114,7 +114,7 @@ Please confirm this order to proceed. Thank you for choosing Beracah Cafe! ☕
                     <h4 className="font-medium text-black">{item.name}</h4>
                     <p className="text-sm text-gray-600">₱{item.price} x {item.quantity}</p>
                   </div>
-                  <span className="font-semibold text-black">₱{parseInt(item.price * item.quantity)}</span>
+                  <span className="font-semibold text-black">₱{1}</span>
                 </div>
               ))}
             </div>
