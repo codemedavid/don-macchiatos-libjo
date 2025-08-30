@@ -66,10 +66,19 @@ ${serviceType === 'pickup' ? `⏰ Pickup Time: ${timeInfo}` : ''}
 
 
 📋 ORDER DETAILS:
-${cartItems.map(item => `• ${item.name} x${item.quantity} - ₱${item.price * item.quantity}`).join('\n')}
-${cartItems.map(item => `• ${item.name} x${item.quantity} - ₱${item.totalPrice * item.quantity}`).join('\n')}
+${cartItems.map(item => {
+  let itemDetails = `• ${item.name}`;
+  if (item.selectedVariation) {
+    itemDetails += ` (${item.selectedVariation.name})`;
+  }
+  if (item.selectedAddOns && item.selectedAddOns.length > 0) {
+    itemDetails += ` + ${item.selectedAddOns.map(addOn => addOn.name).join(', ')}`;
+  }
+  itemDetails += ` x${item.quantity} - ₱${item.totalPrice * item.quantity}`;
+  return itemDetails;
+}).join('\n')}
 
-💰 TOTAL: ₱${parseFloat(totalPrice)}
+💰 TOTAL: ₱${totalPrice}
 
 💳 Payment: ${paymentDetails[paymentMethod].name}
 🔗 Reference: ${referenceNumber}
@@ -113,7 +122,15 @@ Please confirm this order to proceed. Thank you for choosing Beracah Cafe! ☕
                 <div key={item.id} className="flex items-center justify-between py-2 border-b border-beige-100">
                   <div>
                     <h4 className="font-medium text-black">{item.name}</h4>
-                    <p className="text-sm text-gray-600">₱{item.price} x {item.quantity}</p>
+                    {item.selectedVariation && (
+                      <p className="text-sm text-gray-600">Size: {item.selectedVariation.name}</p>
+                    )}
+                    {item.selectedAddOns && item.selectedAddOns.length > 0 && (
+                      <p className="text-sm text-gray-600">
+                        Add-ons: {item.selectedAddOns.map(addOn => addOn.name).join(', ')}
+                      </p>
+                    )}
+                    <p className="text-sm text-gray-600">₱{item.totalPrice} x {item.quantity}</p>
                   </div>
                   <span className="font-semibold text-black">₱{item.totalPrice * item.quantity}</span>
                 </div>
@@ -372,6 +389,14 @@ Please confirm this order to proceed. Thank you for choosing Beracah Cafe! ☕
               <div key={item.id} className="flex items-center justify-between py-2 border-b border-beige-100">
                 <div>
                   <h4 className="font-medium text-black">{item.name}</h4>
+                  {item.selectedVariation && (
+                    <p className="text-sm text-gray-600">Size: {item.selectedVariation.name}</p>
+                  )}
+                  {item.selectedAddOns && item.selectedAddOns.length > 0 && (
+                    <p className="text-sm text-gray-600">
+                      Add-ons: {item.selectedAddOns.map(addOn => addOn.name).join(', ')}
+                    </p>
+                  )}
                   <p className="text-sm text-gray-600">₱{item.totalPrice} x {item.quantity}</p>
                 </div>
                 <span className="font-semibold text-black">₱{item.totalPrice * item.quantity}</span>

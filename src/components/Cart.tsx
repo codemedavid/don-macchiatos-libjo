@@ -72,7 +72,6 @@ const Cart: React.FC<CartProps> = ({
                     Add-ons: {item.selectedAddOns.map(addOn => addOn.name).join(', ')}
                   </p>
                 )}
-                <p className="text-gray-600 text-sm mb-2">{item.description}</p>
                 <p className="text-lg font-semibold text-black">₱{item.totalPrice} each</p>
               </div>
               

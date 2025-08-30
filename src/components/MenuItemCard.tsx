@@ -92,7 +92,18 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
         )}
         
         <div className="aspect-w-16 aspect-h-9 bg-gradient-to-br from-cream-100 to-beige-200 relative">
-          <div className="absolute inset-0 flex items-center justify-center">
+          {item.image ? (
+            <img
+              src={item.image}
+              alt={item.name}
+              className="w-full h-48 object-cover"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+                e.currentTarget.nextElementSibling?.classList.remove('hidden');
+              }}
+            />
+          ) : null}
+          <div className={`absolute inset-0 flex items-center justify-center ${item.image ? 'hidden' : ''}`}>
             <div className="text-6xl opacity-30">☕</div>
           </div>
         </div>

@@ -20,7 +20,6 @@ export const useCart = () => {
 
   const addToCart = useCallback((item: MenuItem, quantity: number = 1, variation?: Variation, addOns?: AddOn[]) => {
     const totalPrice = calculateItemPrice(item, variation, addOns);
-    const cartItemId = `${item.id}-${variation?.id || 'default'}-${addOns?.map(a => a.id).join(',') || 'none'}`;
     
     setCartItems(prev => {
       const existingItem = prev.find(cartItem => 
@@ -36,8 +35,10 @@ export const useCart = () => {
             : cartItem
         );
       } else {
+        const uniqueId = `${item.id}-${variation?.id || 'default'}-${addOns?.map(a => a.id).join(',') || 'none'}`;
         return [...prev, { 
-          ...item, 
+          ...item,
+          id: uniqueId,
           quantity,
           selectedVariation: variation,
           selectedAddOns: addOns || [],

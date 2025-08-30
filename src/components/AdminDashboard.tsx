@@ -317,6 +317,30 @@ const AdminDashboard: React.FC = () => {
               />
             </div>
 
+            <div className="mb-8">
+              <label className="block text-sm font-medium text-black mb-2">Image URL</label>
+              <input
+                type="url"
+                value={formData.image || ''}
+                onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
+                placeholder="https://example.com/image.jpg"
+              />
+              {formData.image && (
+                <div className="mt-3">
+                  <p className="text-sm text-gray-600 mb-2">Preview:</p>
+                  <img
+                    src={formData.image}
+                    alt="Preview"
+                    className="w-32 h-32 object-cover rounded-lg border border-gray-300"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+
             {/* Variations Section */}
             <div className="mb-8">
               <div className="flex items-center justify-between mb-4">
