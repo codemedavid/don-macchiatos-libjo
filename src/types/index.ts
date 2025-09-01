@@ -38,12 +38,12 @@ export interface OrderData {
   serviceType: 'dine-in' | 'pickup' | 'delivery';
   address?: string;
   pickupTime?: string;
-  paymentMethod: 'gcash' | 'cash' | 'bank-transfer';
+  paymentMethod: 'cash' | 'gcash' | 'bank-transfer';
   referenceNumber?: string;
   total: number;
   notes?: string;
 }
 
-export type PaymentMethod = 'gcash' | 'cash' | 'bank-transfer';
-export type PaymentMethod = 'gcash' | 'cash' | 'cards';
+export type PaymentMethod = 'cash' | 'gcash' | 'bank-transfer';
+export type PaymentMethod = 'cash' | 'gcash' | 'cards';
 export type ServiceType = 'dine-in' | 'pickup' | 'delivery';
