@@ -1,6 +1,6 @@
 import React from 'react';
-import { categories } from '../data/menuData';
 import { MenuItem, CartItem } from '../types';
+import { useCategories } from '../hooks/useCategories';
 import MenuItemCard from './MenuItemCard';
 import MobileNav from './MobileNav';
 
@@ -12,6 +12,7 @@ interface MenuProps {
 }
 
 const Menu: React.FC<MenuProps> = ({ menuItems, addToCart, cartItems, updateQuantity }) => {
+  const { categories } = useCategories();
   const [activeCategory, setActiveCategory] = React.useState('hot-coffee');
 
   const handleCategoryClick = (categoryId: string) => {
@@ -29,6 +30,12 @@ const Menu: React.FC<MenuProps> = ({ menuItems, addToCart, cartItems, updateQuan
       });
     }
   };
+
+  React.useEffect(() => {
+    if (categories.length > 0 && !categories.find(cat => cat.id === activeCategory)) {
+      setActiveCategory(categories[0].id);
+    }
+  }, [categories, activeCategory]);
 
   React.useEffect(() => {
     const handleScroll = () => {

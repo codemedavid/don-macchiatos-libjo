@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { Plus, Edit, Trash2, Save, X, ArrowLeft, Coffee, TrendingUp, Package, Users, Lock } from 'lucide-react';
+import { Plus, Edit, Trash2, Save, X, ArrowLeft, Coffee, TrendingUp, Package, Users, Lock, FolderOpen } from 'lucide-react';
 import { MenuItem, Variation, AddOn } from '../types';
-import { categories, addOnCategories } from '../data/menuData';
+import { addOnCategories } from '../data/menuData';
 import { useMenu } from '../hooks/useMenu';
+import { useCategories } from '../hooks/useCategories';
 import ImageUpload from './ImageUpload';
+import CategoryManager from './CategoryManager';
 
 const AdminDashboard: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
@@ -12,7 +14,8 @@ const AdminDashboard: React.FC = () => {
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
   const { menuItems, loading, addMenuItem, updateMenuItem, deleteMenuItem } = useMenu();
-  const [currentView, setCurrentView] = useState<'dashboard' | 'items' | 'add' | 'edit'>('dashboard');
+  const { categories } = useCategories();
+  const [currentView, setCurrentView] = useState<'dashboard' | 'items' | 'add' | 'edit' | 'categories'>('dashboard');
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
   const [formData, setFormData] = useState<Partial<MenuItem>>({
     name: '',
@@ -31,7 +34,7 @@ const AdminDashboard: React.FC = () => {
       name: '',
       description: '',
       basePrice: 0,
-      category: 'hot-coffee',
+      category: categories[0]?.id || 'hot-coffee',
       popular: false,
       available: true,
       variations: [],
@@ -522,6 +525,11 @@ const AdminDashboard: React.FC = () => {
     );
   }
 
+  // Categories View
+  if (currentView === 'categories') {
+    return <CategoryManager onBack={() => setCurrentView('dashboard')} />;
+  }
+
   // Dashboard View
   return (
     <div className="min-h-screen bg-gray-50">
@@ -620,6 +628,13 @@ const AdminDashboard: React.FC = () => {
               >
                 <Package className="h-5 w-5 text-gray-400" />
                 <span className="font-medium text-gray-900">Manage Menu Items</span>
+              </button>
+              <button
+                onClick={() => setCurrentView('categories')}
+                className="w-full flex items-center space-x-3 p-3 text-left hover:bg-gray-50 rounded-lg transition-colors duration-200"
+              >
+                <FolderOpen className="h-5 w-5 text-gray-400" />
+                <span className="font-medium text-gray-900">Manage Categories</span>
               </button>
             </div>
           </div>
