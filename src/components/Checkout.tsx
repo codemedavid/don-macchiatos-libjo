@@ -25,7 +25,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack }) =>
   }, [step]);
 
   const paymentMethods = {
-    maya: { name: 'Cash', icon: '' },
+    cash: { name: 'Cash', icon: '' },
     gcash: { name: 'GCash', icon: '💳' },
     cards: { name: 'Credit/Debit Cards', icon: '💳' }
   };
