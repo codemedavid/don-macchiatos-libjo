@@ -17,7 +17,6 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack }) =>
   const [pickupTime, setPickupTime] = useState('5-10');
   const [customTime, setCustomTime] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('gcash');
-  const [referenceNumber, setReferenceNumber] = useState('');
   const [notes, setNotes] = useState('');
 
   // Scroll to top when step changes
@@ -25,25 +24,10 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack }) =>
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [step]);
 
-  const paymentDetails = {
-    gcash: {
-      name: 'GCash',
-      number: '09XX XXX XXXX',
-      accountName: 'Beracah Cafe',
-      qr: 'https://images.pexels.com/photos/8867482/pexels-photo-8867482.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop'
-    },
-    maya: {
-      name: 'Maya (PayMaya)',
-      number: '09XX XXX XXXX',
-      accountName: 'Beracah Cafe',
-      qr: 'https://images.pexels.com/photos/8867482/pexels-photo-8867482.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop'
-    },
-    'bank-transfer': {
-      name: 'Bank Transfer',
-      number: 'Account: 1234-5678-9012',
-      accountName: 'Beracah Cafe',
-      qr: 'https://images.pexels.com/photos/8867482/pexels-photo-8867482.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop'
-    }
+  const paymentMethods = {
+    gcash: { name: 'GCash', icon: '💳' },
+    maya: { name: 'Maya', icon: '💰' },
+    cards: { name: 'Credit/Debit Cards', icon: '💳' }
   };
 
   const handleProceedToPayment = () => {
@@ -80,8 +64,7 @@ ${cartItems.map(item => {
 
 💰 TOTAL: ₱${totalPrice}
 
-💳 Payment: ${paymentDetails[paymentMethod].name}
-🔗 Reference: ${referenceNumber}
+💳 Payment Method: ${paymentMethods[paymentMethod].name}
 
 ${notes ? `📝 Notes: ${notes}` : ''}
 
@@ -96,7 +79,6 @@ Please confirm this order to proceed. Thank you for choosing Beracah Cafe! ☕
   };
 
   const isDetailsValid = customerName && contactNumber && (serviceType !== 'delivery' || address) && (serviceType !== 'pickup' || (pickupTime !== 'custom' || customTime));
-  const isPaymentValid = referenceNumber;
 
   if (step === 'details') {
     return (
@@ -311,7 +293,7 @@ Please confirm this order to proceed. Thank you for choosing Beracah Cafe! ☕
             {[
               { value: 'gcash', label: 'GCash', icon: '💳' },
               { value: 'maya', label: 'Maya', icon: '💰' },
-              { value: 'bank-transfer', label: 'Bank Transfer', icon: '🏦' }
+              { value: 'cards', label: 'Credit/Debit Cards', icon: '💳' }
             ].map((option) => (
               <button
                 key={option.value}
@@ -329,41 +311,13 @@ Please confirm this order to proceed. Thank you for choosing Beracah Cafe! ☕
             ))}
           </div>
 
-          {/* Payment Details with QR Code */}
           <div className="bg-beige-50 rounded-lg p-6 mb-6">
-            <h3 className="font-medium text-black mb-4">Payment Details</h3>
-            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-              <div className="flex-1">
-                <p className="text-sm text-gray-600 mb-1">{paymentDetails[paymentMethod].name}</p>
-                <p className="font-mono text-black font-medium">{paymentDetails[paymentMethod].number}</p>
-                <p className="text-sm text-gray-600 mb-3">Account Name: {paymentDetails[paymentMethod].accountName}</p>
-                <p className="text-xl font-semibold text-black">Amount: ₱{totalPrice}</p>
-              </div>
-              <div className="flex-shrink-0">
-                <img 
-                  src={paymentDetails[paymentMethod].qr} 
-                  alt={`${paymentDetails[paymentMethod].name} QR Code`}
-                  className="w-32 h-32 rounded-lg border-2 border-beige-300 shadow-sm"
-                />
-                <p className="text-xs text-gray-500 text-center mt-2">Scan to pay</p>
-              </div>
+            <h3 className="font-medium text-black mb-2">Selected Payment Method</h3>
+            <div className="flex items-center space-x-3">
+              <span className="text-2xl">{paymentMethods[paymentMethod].icon}</span>
+              <span className="text-lg font-medium text-black">{paymentMethods[paymentMethod].name}</span>
             </div>
-          </div>
-
-          {/* Reference Number */}
-          <div>
-            <label className="block text-sm font-medium text-black mb-2">Payment Reference Number *</label>
-            <input
-              type="text"
-              value={referenceNumber}
-              onChange={(e) => setReferenceNumber(e.target.value)}
-              className="w-full px-4 py-3 border border-beige-300 rounded-lg focus:ring-2 focus:ring-cream-500 focus:border-transparent transition-all duration-200"
-              placeholder="Enter payment reference number"
-              required
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              Enter the reference number from your payment confirmation
-            </p>
+            <p className="text-xl font-semibold text-black mt-4">Total Amount: ₱{totalPrice}</p>
           </div>
         </div>
 
@@ -413,12 +367,7 @@ Please confirm this order to proceed. Thank you for choosing Beracah Cafe! ☕
 
           <button
             onClick={handlePlaceOrder}
-            disabled={!isPaymentValid}
-            className={`w-full py-4 rounded-xl font-medium text-lg transition-all duration-200 transform ${
-              isPaymentValid
-                ? 'bg-black text-white hover:bg-gray-800 hover:scale-[1.02]'
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-            }`}
+            className="w-full py-4 rounded-xl font-medium text-lg transition-all duration-200 transform bg-black text-white hover:bg-gray-800 hover:scale-[1.02]"
           >
             Place Order via Messenger
           </button>
