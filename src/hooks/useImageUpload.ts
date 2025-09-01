@@ -26,27 +26,15 @@ export const useImageUpload = () => {
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
 
-      // Simulate upload progress
-      const progressInterval = setInterval(() => {
-        setUploadProgress(prev => {
-          if (prev >= 90) {
-            clearInterval(progressInterval);
-            return 90;
-          }
-          return prev + 10;
-        });
-      }, 100);
-
       // Upload to Supabase Storage
       const { data, error } = await supabase.storage
         .from('menu-images')
         .upload(fileName, file, {
-          cacheControl: '3600',
+          cacheControl: '86400',
           upsert: false,
           contentType: file.type
         });
 
-      clearInterval(progressInterval);
       setUploadProgress(100);
 
       if (error) {

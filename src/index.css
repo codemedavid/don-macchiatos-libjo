@@ -11,19 +11,3 @@
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
-
-/* Image loading optimization */
-img {
-  image-rendering: -webkit-optimize-contrast;
-  image-rendering: crisp-edges;
-}
-
-/* Preload critical images */
-.preload-image {
-  content: '';
-  position: absolute;
-  left: -9999px;
-  top: -9999px;
-  width: 1px;
-  height: 1px;
-}

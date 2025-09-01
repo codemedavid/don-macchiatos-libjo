@@ -4,16 +4,6 @@ import { useCategories } from '../hooks/useCategories';
 import MenuItemCard from './MenuItemCard';
 import MobileNav from './MobileNav';
 
-// Preload images for better performance
-const preloadImages = (items: MenuItem[]) => {
-  items.forEach(item => {
-    if (item.image) {
-      const img = new Image();
-      img.src = item.image;
-    }
-  });
-};
-
 interface MenuProps {
   menuItems: MenuItem[];
   addToCart: (item: MenuItem, quantity?: number, variation?: any, addOns?: any[]) => void;
@@ -24,21 +14,6 @@ interface MenuProps {
 const Menu: React.FC<MenuProps> = ({ menuItems, addToCart, cartItems, updateQuantity }) => {
   const { categories } = useCategories();
   const [activeCategory, setActiveCategory] = React.useState('hot-coffee');
-
-  // Preload images when menu items change
-  React.useEffect(() => {
-    if (menuItems.length > 0) {
-      // Preload images for visible category first
-      const visibleItems = menuItems.filter(item => item.category === activeCategory);
-      preloadImages(visibleItems);
-      
-      // Then preload other images after a short delay
-      setTimeout(() => {
-        const otherItems = menuItems.filter(item => item.category !== activeCategory);
-        preloadImages(otherItems);
-      }, 1000);
-    }
-  }, [menuItems, activeCategory]);
 
   const handleCategoryClick = (categoryId: string) => {
     setActiveCategory(categoryId);
