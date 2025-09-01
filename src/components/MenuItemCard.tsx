@@ -96,11 +96,17 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
             <img
               src={item.image}
               alt={item.name}
-              className="w-full h-48 object-cover"
+              className="w-full h-48 object-cover transition-opacity duration-300"
+              loading="lazy"
+              decoding="async"
               onError={(e) => {
                 e.currentTarget.style.display = 'none';
                 e.currentTarget.nextElementSibling?.classList.remove('hidden');
               }}
+              onLoad={(e) => {
+                e.currentTarget.style.opacity = '1';
+              }}
+              style={{ opacity: 0 }}
             />
           ) : null}
           <div className={`absolute inset-0 flex items-center justify-center ${item.image ? 'hidden' : ''}`}>
