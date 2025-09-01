@@ -30,9 +30,10 @@ export const useImageUpload = () => {
       const { data, error } = await supabase.storage
         .from('menu-images')
         .upload(fileName, file, {
-          cacheControl: '86400',
+          cacheControl: '31536000', // 1 year cache
           upsert: false,
-          contentType: file.type
+          contentType: file.type,
+          duplex: 'half'
         });
 
       setUploadProgress(100);

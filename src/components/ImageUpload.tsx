@@ -125,13 +125,13 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
 
       {/* URL Input as fallback */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Or enter image URL</label>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Or enter image URL (for external images)</label>
         <input
           type="url"
           value={currentImage || ''}
           onChange={(e) => onImageChange(e.target.value || undefined)}
           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
-          placeholder="https://example.com/image.jpg"
+          placeholder="https://images.pexels.com/photos/..."
           disabled={uploading}
         />
       </div>

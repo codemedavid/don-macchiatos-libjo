@@ -98,6 +98,8 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
               alt={item.name}
               className="w-full h-48 object-cover"
               loading="eager"
+              decoding="sync"
+              fetchpriority="high"
               onError={(e) => {
                 e.currentTarget.style.display = 'none';
                 e.currentTarget.nextElementSibling?.classList.remove('hidden');

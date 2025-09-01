@@ -15,6 +15,21 @@ const Menu: React.FC<MenuProps> = ({ menuItems, addToCart, cartItems, updateQuan
   const { categories } = useCategories();
   const [activeCategory, setActiveCategory] = React.useState('hot-coffee');
 
+  // Preload all images immediately when component mounts
+  React.useEffect(() => {
+    const preloadImages = () => {
+      menuItems.forEach(item => {
+        if (item.image) {
+          const img = new Image();
+          img.src = item.image;
+        }
+      });
+    };
+    
+    // Start preloading immediately
+    preloadImages();
+  }, [menuItems]);
+
   const handleCategoryClick = (categoryId: string) => {
     setActiveCategory(categoryId);
     const element = document.getElementById(categoryId);
