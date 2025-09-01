@@ -291,8 +291,9 @@ Please confirm this order to proceed. Thank you for choosing Beracah Cafe! ☕
           
           <div className="grid grid-cols-1 gap-4 mb-6">
             {[
+        { value: 'cash', label: 'Cash', icon: '💰' },
               { value: 'gcash', label: 'GCash', icon: '💳' },
-              { value: 'maya', label: 'Maya', icon: '💰' },
+            
               { value: 'cards', label: 'Credit/Debit Cards', icon: '💳' }
             ].map((option) => (
               <button
