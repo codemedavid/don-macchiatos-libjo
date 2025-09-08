@@ -15,9 +15,14 @@ function MainApp() {
   const cart = useCart();
   const { menuItems } = useMenu();
   const [currentView, setCurrentView] = React.useState<'menu' | 'cart' | 'checkout'>('menu');
+  const [activeCategory, setActiveCategory] = React.useState('hot-coffee');
 
   const handleViewChange = (view: 'menu' | 'cart' | 'checkout') => {
     setCurrentView(view);
+  };
+
+  const handleCategoryChange = (categoryId: string) => {
+    setActiveCategory(categoryId);
   };
 
   return (
@@ -27,7 +32,10 @@ function MainApp() {
         onCartClick={() => handleViewChange('cart')}
         onMenuClick={() => handleViewChange('menu')}
       />
-      <DesktopSubNav />
+      <DesktopSubNav 
+        activeCategory={currentView === 'menu' ? activeCategory : undefined}
+        onCategoryClick={handleCategoryChange}
+      />
       
       {currentView === 'menu' && (
         <>
@@ -37,6 +45,8 @@ function MainApp() {
             addToCart={cart.addToCart}
             cartItems={cart.cartItems}
             updateQuantity={cart.updateQuantity}
+            activeCategory={activeCategory}
+            onCategoryChange={handleCategoryChange}
           />
         </>
       )}

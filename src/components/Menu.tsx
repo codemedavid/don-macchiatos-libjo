@@ -9,11 +9,23 @@ interface MenuProps {
   addToCart: (item: MenuItem, quantity?: number, variation?: any, addOns?: any[]) => void;
   cartItems: CartItem[];
   updateQuantity: (id: string, quantity: number) => void;
+  activeCategory?: string;
+  onCategoryChange?: (categoryId: string) => void;
 }
 
-const Menu: React.FC<MenuProps> = ({ menuItems, addToCart, cartItems, updateQuantity }) => {
+const Menu: React.FC<MenuProps> = ({ 
+  menuItems, 
+  addToCart, 
+  cartItems, 
+  updateQuantity, 
+  activeCategory: propActiveCategory,
+  onCategoryChange 
+}) => {
   const { categories } = useCategories();
-  const [activeCategory, setActiveCategory] = React.useState('hot-coffee');
+  const [localActiveCategory, setLocalActiveCategory] = React.useState('hot-coffee');
+  
+  const activeCategory = propActiveCategory || localActiveCategory;
+  const setActiveCategory = onCategoryChange || setLocalActiveCategory;
 
   // Preload all images immediately when component mounts
   React.useEffect(() => {
