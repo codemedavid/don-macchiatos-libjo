@@ -10,7 +10,7 @@ const DesktopSubNav: React.FC<DesktopSubNavProps> = ({ activeCategory, onCategor
   const { categories } = useCategories();
   const navRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to active category
+  // Auto-scroll to active category in nav
   useEffect(() => {
     if (activeCategory && navRef.current) {
       const activeElement = navRef.current.querySelector(`[data-category="${activeCategory}"]`);
@@ -24,15 +24,15 @@ const DesktopSubNav: React.FC<DesktopSubNavProps> = ({ activeCategory, onCategor
     if (onCategoryClick) {
       onCategoryClick(categoryId);
     } else {
-      console.log('DesktopSubNav: Clicking category:', categoryId);
+      // Simple anchor-based scrolling
       const element = document.getElementById(categoryId);
-      console.log('DesktopSubNav: Found element:', element);
       if (element) {
-        const headerHeight = 64;
-        const subNavHeight = 72;
-        const totalOffset = headerHeight + subNavHeight + 32;
-        const elementPosition = element.offsetTop - totalOffset;
-        console.log('DesktopSubNav: Scrolling to position:', elementPosition);
+        // Calculate offset for sticky headers
+        const headerHeight = 64; // main header
+        const subNavHeight = 72; // this subnav
+        const offset = headerHeight + subNavHeight + 20; // extra padding
+        
+        const elementPosition = element.getBoundingClientRect().top + window.pageYOffset - offset;
         
         window.scrollTo({
           top: elementPosition,

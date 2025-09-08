@@ -12,27 +12,22 @@ const MobileNav: React.FC<MobileNavProps> = ({ activeCategory, onCategoryClick }
   const handleCategoryClick = (categoryId: string) => {
     onCategoryClick(categoryId);
     
-    console.log('MobileNav: Clicking category:', categoryId);
-    // Ensure proper scrolling for mobile
-    setTimeout(() => {
-      const element = document.getElementById(categoryId);
-      console.log('MobileNav: Found element:', element);
-      if (element) {
-        const headerHeight = 64;
-        const mobileNavHeight = 60;
-        const totalOffset = headerHeight + mobileNavHeight + 32;
-        const elementPosition = element.offsetTop - totalOffset;
-        console.log('MobileNav: Element offsetTop:', element.offsetTop);
-        console.log('MobileNav: Total offset:', totalOffset);
-        console.log('MobileNav: Scrolling to position:', elementPosition);
-        
-        window.scrollTo({
-          top: elementPosition,
-          behavior: 'smooth'
-        });
-      }
-    }, 50);
+    // Simple scroll to element
+    const element = document.getElementById(categoryId);
+    if (element) {
+      const headerHeight = 64;
+      const mobileNavHeight = 60;
+      const offset = headerHeight + mobileNavHeight + 20;
+      
+      const elementPosition = element.getBoundingClientRect().top + window.pageYOffset - offset;
+      
+      window.scrollTo({
+        top: elementPosition,
+        behavior: 'smooth'
+      });
+    }
   };
+  
   return (
     <div className="sticky top-16 z-40 bg-white/95 backdrop-blur-sm border-b border-beige-200 md:top-28 md:hidden shadow-sm">
       <div className="flex overflow-x-auto scrollbar-hide px-4 py-3">

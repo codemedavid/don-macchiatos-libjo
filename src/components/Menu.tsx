@@ -45,18 +45,14 @@ const Menu: React.FC<MenuProps> = ({
   const handleCategoryClick = (categoryId: string) => {
     setActiveCategory(categoryId);
     
-    console.log('Menu: Clicking category:', categoryId);
-    // Scroll to the category section with proper offset
+    // Scroll to the category section
     const element = document.getElementById(categoryId);
-    console.log('Menu: Found element:', element);
     if (element) {
       const headerHeight = 64;
-      const subNavHeight = window.innerWidth >= 768 ? 72 : 60; // Desktop subnav or mobile nav
-      const totalOffset = headerHeight + subNavHeight + 32;
-      const elementPosition = element.offsetTop - totalOffset;
-      console.log('Menu: Element offsetTop:', element.offsetTop);
-      console.log('Menu: Total offset:', totalOffset);
-      console.log('Menu: Scrolling to position:', elementPosition);
+      const subNavHeight = window.innerWidth >= 768 ? 72 : 60;
+      const offset = headerHeight + subNavHeight + 20;
+      
+      const elementPosition = element.getBoundingClientRect().top + window.pageYOffset - offset;
       
       window.scrollTo({
         top: elementPosition,
@@ -71,112 +67,44 @@ const Menu: React.FC<MenuProps> = ({
     }
   }, [categories, activeCategory]);
 
-  // Improved scroll detection for active category
+  // Use Intersection Observer for better section detection
   React.useEffect(() => {
-    const handleScroll = () => {
-      const sections = categories.map(cat => ({
-        id: cat.id,
-        element: document.getElementById(cat.id)
-      })).filter(section => section.element);
-      
-      const headerHeight = 64;
-      const subNavHeight = window.innerWidth >= 768 ? 72 : 60;
-      const scrollPosition = window.scrollY + headerHeight + subNavHeight + 100;
+    if (categories.length === 0) return;
 
-      // Find the section that's currently in view
-      let currentSection = sections[0]?.id;
-      
-      for (const section of sections) {
-        if (section.element && section.element.offsetTop <= scrollPosition) {
-          currentSection = section.id;
-        } else {
-          break;
-        }
-      }
-      
-      if (currentSection && currentSection !== activeCategory) {
-        setActiveCategory(currentSection);
-      }
-    };
-
-    // Throttle scroll events for better performance
-    let ticking = false;
-    const throttledHandleScroll = () => {
-      if (!ticking) {
-        requestAnimationFrame(() => {
-          handleScroll();
-          ticking = false;
-        });
-        ticking = true;
-      }
-    };
-
-    window.addEventListener('scroll', throttledHandleScroll);
-    return () => window.removeEventListener('scroll', throttledHandleScroll);
-  }, [categories, activeCategory, setActiveCategory]);
-
-  // Initial scroll detection on mount
-  React.useEffect(() => {
-    const timer = setTimeout(() => {
-      const handleScroll = () => {
-        const sections = categories.map(cat => ({
-          id: cat.id,
-          element: document.getElementById(cat.id)
-        })).filter(section => section.element);
+    const observer = new IntersectionObserver(
+      (entries) => {
+        // Find the entry with the largest intersection ratio
+        let maxRatio = 0;
+        let activeSection = '';
         
-        const headerHeight = 64;
-        const subNavHeight = window.innerWidth >= 768 ? 72 : 60;
-        const scrollPosition = window.scrollY + headerHeight + subNavHeight + 100;
-
-        let currentSection = sections[0]?.id;
-        
-        for (const section of sections) {
-          if (section.element && section.element.offsetTop <= scrollPosition) {
-            currentSection = section.id;
-          } else {
-            break;
+        entries.forEach((entry) => {
+          if (entry.intersectionRatio > maxRatio) {
+            maxRatio = entry.intersectionRatio;
+            activeSection = entry.target.id;
           }
-        }
+        });
         
-        if (currentSection && currentSection !== activeCategory) {
-          setActiveCategory(categories[i].id);
+        // Only update if we have a significant intersection and it's different
+        if (maxRatio > 0.1 && activeSection && activeSection !== activeCategory) {
+          setActiveCategory(activeSection);
         }
-      };
-      handleScroll();
-    }, 100);
-
-    return () => clearTimeout(timer);
-  }, [categories]);
-
-  React.useEffect(() => {
-    const handleScroll = () => {
-      const sections = categories.map(cat => ({
-        id: cat.id,
-        element: document.getElementById(cat.id)
-      })).filter(section => section.element);
-      
-      const headerHeight = 64;
-      const subNavHeight = window.innerWidth >= 768 ? 72 : 60;
-      const scrollPosition = window.scrollY + headerHeight + subNavHeight + 100;
-
-      let currentSection = sections[0]?.id;
-      
-      for (const section of sections) {
-        if (section.element && section.element.offsetTop <= scrollPosition) {
-          currentSection = section.id;
-        } else {
-          break;
-        }
+      },
+      {
+        rootMargin: '-140px 0px -50% 0px', // Account for sticky headers
+        threshold: [0, 0.1, 0.25, 0.5, 0.75, 1]
       }
-      
-      if (currentSection && currentSection !== activeCategory) {
-        setActiveCategory(currentSection);
-      }
-    };
+    );
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [categories, setActiveCategory]);
+    // Observe all category sections
+    categories.forEach((category) => {
+      const element = document.getElementById(category.id);
+      if (element) {
+        observer.observe(element);
+      }
+    });
+
+    return () => observer.disconnect();
+  }, [categories, activeCategory, setActiveCategory]);
 
 
   return (
