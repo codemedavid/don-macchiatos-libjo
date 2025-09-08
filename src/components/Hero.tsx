@@ -1,6 +1,10 @@
 import React from 'react';
+import { useCategories } from '../hooks/useCategories';
 
 const Hero: React.FC = () => {
+  const { categories } = useCategories();
+  const firstCategoryId = categories[0]?.id || 'menu';
+
   return (
     <section className="relative bg-gradient-to-br from-beige-100 to-cream-100 py-20 px-4">
       <div className="max-w-4xl mx-auto text-center">
@@ -14,7 +18,7 @@ const Hero: React.FC = () => {
         </p>
         <div className="flex justify-center">
           <a 
-            href="#hot-coffee"
+            href={`#${firstCategoryId}`}
             className="bg-black text-white px-8 py-3 rounded-full hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 font-medium"
           >
             Explore Menu
