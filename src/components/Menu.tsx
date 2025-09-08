@@ -44,12 +44,14 @@ const Menu: React.FC<MenuProps> = ({
 
   const handleCategoryClick = (categoryId: string) => {
     setActiveCategory(categoryId);
+    
+    // Scroll to the category section with proper offset
     const element = document.getElementById(categoryId);
     if (element) {
-      const headerHeight = 64; // Header height
-      const mobileNavHeight = 60; // Mobile nav height
-      const offset = headerHeight + mobileNavHeight + 20; // Extra padding
-      const elementPosition = element.offsetTop - offset;
+      const headerHeight = 64;
+      const subNavHeight = window.innerWidth >= 768 ? 72 : 60; // Desktop subnav or mobile nav
+      const totalOffset = headerHeight + subNavHeight + 32;
+      const elementPosition = element.offsetTop - totalOffset;
       
       window.scrollTo({
         top: elementPosition,
@@ -64,19 +66,106 @@ const Menu: React.FC<MenuProps> = ({
     }
   }, [categories, activeCategory]);
 
+  // Improved scroll detection for active category
   React.useEffect(() => {
     const handleScroll = () => {
-      const sections = categories.map(cat => document.getElementById(cat.id)).filter(Boolean);
-      const headerHeight = 64; // Main header height
-      const subNavHeight = 72; // SubNav height
-      const scrollPosition = window.scrollY + headerHeight + subNavHeight + 50;
+      const sections = categories.map(cat => ({
+        id: cat.id,
+        element: document.getElementById(cat.id)
+      })).filter(section => section.element);
+      
+      const headerHeight = 64;
+      const subNavHeight = window.innerWidth >= 768 ? 72 : 60;
+      const scrollPosition = window.scrollY + headerHeight + subNavHeight + 100;
 
-      for (let i = sections.length - 1; i >= 0; i--) {
-        const section = sections[i];
-        if (section && section.offsetTop <= scrollPosition) {
-          setActiveCategory(categories[i].id);
+      // Find the section that's currently in view
+      let currentSection = sections[0]?.id;
+      
+      for (const section of sections) {
+        if (section.element && section.element.offsetTop <= scrollPosition) {
+          currentSection = section.id;
+        } else {
           break;
         }
+      }
+      
+      if (currentSection && currentSection !== activeCategory) {
+        setActiveCategory(currentSection);
+      }
+    };
+
+    // Throttle scroll events for better performance
+    let ticking = false;
+    const throttledHandleScroll = () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          handleScroll();
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+
+    window.addEventListener('scroll', throttledHandleScroll);
+    return () => window.removeEventListener('scroll', throttledHandleScroll);
+  }, [categories, activeCategory, setActiveCategory]);
+
+  // Initial scroll detection on mount
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      const handleScroll = () => {
+        const sections = categories.map(cat => ({
+          id: cat.id,
+          element: document.getElementById(cat.id)
+        })).filter(section => section.element);
+        
+        const headerHeight = 64;
+        const subNavHeight = window.innerWidth >= 768 ? 72 : 60;
+        const scrollPosition = window.scrollY + headerHeight + subNavHeight + 100;
+
+        let currentSection = sections[0]?.id;
+        
+        for (const section of sections) {
+          if (section.element && section.element.offsetTop <= scrollPosition) {
+            currentSection = section.id;
+          } else {
+            break;
+          }
+        }
+        
+        if (currentSection && currentSection !== activeCategory) {
+          setActiveCategory(categories[i].id);
+        }
+      };
+      handleScroll();
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [categories]);
+
+  React.useEffect(() => {
+    const handleScroll = () => {
+      const sections = categories.map(cat => ({
+        id: cat.id,
+        element: document.getElementById(cat.id)
+      })).filter(section => section.element);
+      
+      const headerHeight = 64;
+      const subNavHeight = window.innerWidth >= 768 ? 72 : 60;
+      const scrollPosition = window.scrollY + headerHeight + subNavHeight + 100;
+
+      let currentSection = sections[0]?.id;
+      
+      for (const section of sections) {
+        if (section.element && section.element.offsetTop <= scrollPosition) {
+          currentSection = section.id;
+        } else {
+          break;
+        }
+      }
+      
+      if (currentSection && currentSection !== activeCategory) {
+        setActiveCategory(currentSection);
       }
     };
 

@@ -9,13 +9,32 @@ interface MobileNavProps {
 const MobileNav: React.FC<MobileNavProps> = ({ activeCategory, onCategoryClick }) => {
   const { categories } = useCategories();
 
+  const handleCategoryClick = (categoryId: string) => {
+    onCategoryClick(categoryId);
+    
+    // Ensure proper scrolling for mobile
+    setTimeout(() => {
+      const element = document.getElementById(categoryId);
+      if (element) {
+        const headerHeight = 64;
+        const mobileNavHeight = 60;
+        const totalOffset = headerHeight + mobileNavHeight + 32;
+        const elementPosition = element.offsetTop - totalOffset;
+        
+        window.scrollTo({
+          top: elementPosition,
+          behavior: 'smooth'
+        });
+      }
+    }, 50);
+  };
   return (
     <div className="sticky top-16 z-40 bg-white/95 backdrop-blur-sm border-b border-beige-200 md:top-28 md:hidden shadow-sm">
       <div className="flex overflow-x-auto scrollbar-hide px-4 py-3">
         {categories.map((category) => (
           <button
             key={category.id}
-            onClick={() => onCategoryClick(category.id)}
+            onClick={() => handleCategoryClick(category.id)}
             className={`flex-shrink-0 flex items-center space-x-2 px-4 py-2 rounded-full mr-3 transition-all duration-200 ${
               activeCategory === category.id
                 ? 'bg-black text-white'
