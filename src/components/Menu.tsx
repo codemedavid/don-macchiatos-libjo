@@ -67,7 +67,9 @@ const Menu: React.FC<MenuProps> = ({
   React.useEffect(() => {
     const handleScroll = () => {
       const sections = categories.map(cat => document.getElementById(cat.id)).filter(Boolean);
-      const scrollPosition = window.scrollY + 200;
+      const headerHeight = 64; // Main header height
+      const subNavHeight = 72; // SubNav height
+      const scrollPosition = window.scrollY + headerHeight + subNavHeight + 50;
 
       for (let i = sections.length - 1; i >= 0; i--) {
         const section = sections[i];
@@ -80,7 +82,7 @@ const Menu: React.FC<MenuProps> = ({
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [categories, setActiveCategory]);
 
 
   return (

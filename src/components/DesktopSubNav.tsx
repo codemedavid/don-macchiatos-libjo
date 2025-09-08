@@ -28,7 +28,7 @@ const DesktopSubNav: React.FC<DesktopSubNavProps> = ({ activeCategory, onCategor
       const element = document.getElementById(categoryId);
       if (element) {
         const headerHeight = 64; // Main header height
-        const subNavHeight = 60; // SubNav height
+        const subNavHeight = 72; // SubNav height (updated)
         const offset = headerHeight + subNavHeight + 20;
         const elementPosition = element.offsetTop - offset;
         
