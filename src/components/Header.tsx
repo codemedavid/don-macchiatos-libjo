@@ -1,6 +1,5 @@
 import React from 'react';
 import { ShoppingCart } from 'lucide-react';
-import { useCategories } from '../hooks/useCategories';
 
 interface HeaderProps {
   cartItemsCount: number;
@@ -9,7 +8,6 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ cartItemsCount, onCartClick, onMenuClick }) => {
-  const { categories } = useCategories();
 
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-beige-200 shadow-sm">
@@ -22,18 +20,6 @@ const Header: React.FC<HeaderProps> = ({ cartItemsCount, onCartClick, onMenuClic
             <img src="/logo.jpg" className="w-16 h-16"/>
             <h1 className="text-2xl font-playfair font-semibold">Beracah Cafe</h1>
           </button>
-          
-          <nav className="hidden md:flex items-center space-x-8">
-            {categories.map((category) => (
-              <a 
-                key={category.id}
-                href={`#${category.id}`} 
-                className="text-gray-700 hover:text-black transition-colors duration-200"
-              >
-                {category.name}
-              </a>
-            ))}
-          </nav>
           
           <div className="flex items-center space-x-2">
             <button 
