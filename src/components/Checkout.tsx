@@ -7,6 +7,7 @@ interface CheckoutProps {
   totalPrice: number;
   onBack: () => void;
 }
+
 const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack }) => {
   const [step, setStep] = useState<'details' | 'payment'>('details');
   const [customerName, setCustomerName] = useState('');
