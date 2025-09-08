@@ -2,7 +2,6 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { useCart } from './hooks/useCart';
 import Header from './components/Header';
-import DesktopSubNav from './components/DesktopSubNav';
 import Hero from './components/Hero';
 import Menu from './components/Menu';
 import Cart from './components/Cart';
@@ -31,10 +30,6 @@ function MainApp() {
         cartItemsCount={cart.getTotalItems()}
         onCartClick={() => handleViewChange('cart')}
         onMenuClick={() => handleViewChange('menu')}
-      />
-      <DesktopSubNav 
-        activeCategory={currentView === 'menu' ? activeCategory : undefined}
-        onCategoryClick={handleCategoryChange}
       />
       
       {currentView === 'menu' && (

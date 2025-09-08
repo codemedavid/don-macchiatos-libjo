@@ -3,6 +3,7 @@ import { MenuItem, CartItem } from '../types';
 import { useCategories } from '../hooks/useCategories';
 import MenuItemCard from './MenuItemCard';
 import MobileNav from './MobileNav';
+import DesktopSubNav from './DesktopSubNav';
 
 interface MenuProps {
   menuItems: MenuItem[];
@@ -109,6 +110,10 @@ const Menu: React.FC<MenuProps> = ({
 
   return (
     <>
+      <DesktopSubNav 
+        activeCategory={activeCategory}
+        onCategoryClick={handleCategoryClick}
+      />
       <MobileNav 
         activeCategory={activeCategory}
         onCategoryClick={handleCategoryClick}
