@@ -42,8 +42,8 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack }) =>
     const orderDetails = `
 🛒 BERACAH CAFE ORDER
 
-👤 Customer: ${customerName}
-📞 Contact: ${contactNumber}
+${customerName ? `👤 Customer: ${customerName}` : ''}
+${contactNumber ? `📞 Contact: ${contactNumber}` : ''}
 📍 Service: ${serviceType.charAt(0).toUpperCase() + serviceType.slice(1)}
 ${serviceType === 'delivery' ? `🏠 Address: ${address}` : ''}
 ${serviceType === 'pickup' ? `⏰ Pickup Time: ${timeInfo}` : ''}
@@ -78,7 +78,10 @@ Please confirm this order to proceed. Thank you for choosing Beracah Cafe! ☕
     
   };
 
-  const isDetailsValid = customerName && contactNumber && (serviceType !== 'delivery' || address) && (serviceType !== 'pickup' || (pickupTime !== 'custom' || customTime));
+  const isDetailsValid = 
+    (serviceType === 'dine-in' || (customerName && contactNumber)) &&
+    (serviceType !== 'delivery' || address) && 
+    (serviceType !== 'pickup' || (pickupTime !== 'custom' || customTime));
 
   if (step === 'details') {
     return (
@@ -134,26 +137,30 @@ Please confirm this order to proceed. Thank you for choosing Beracah Cafe! ☕
             <form className="space-y-6">
               {/* Customer Information */}
               <div>
-                <label className="block text-sm font-medium text-black mb-2">Full Name *</label>
+                <label className="block text-sm font-medium text-black mb-2">
+                  Full Name {serviceType !== 'dine-in' ? '*' : '(Optional)'}
+                </label>
                 <input
                   type="text"
                   value={customerName}
                   onChange={(e) => setCustomerName(e.target.value)}
                   className="w-full px-4 py-3 border border-beige-300 rounded-lg focus:ring-2 focus:ring-cream-500 focus:border-transparent transition-all duration-200"
                   placeholder="Enter your full name"
-                  required
+                  required={serviceType !== 'dine-in'}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-black mb-2">Contact Number *</label>
+                <label className="block text-sm font-medium text-black mb-2">
+                  Contact Number {serviceType !== 'dine-in' ? '*' : '(Optional)'}
+                </label>
                 <input
                   type="tel"
                   value={contactNumber}
                   onChange={(e) => setContactNumber(e.target.value)}
                   className="w-full px-4 py-3 border border-beige-300 rounded-lg focus:ring-2 focus:ring-cream-500 focus:border-transparent transition-all duration-200"
                   placeholder="09XX XXX XXXX"
-                  required
+                  required={serviceType !== 'dine-in'}
                 />
               </div>
 
@@ -329,8 +336,8 @@ Please confirm this order to proceed. Thank you for choosing Beracah Cafe! ☕
           <div className="space-y-4 mb-6">
             <div className="bg-beige-50 rounded-lg p-4">
               <h4 className="font-medium text-black mb-2">Customer Details</h4>
-              <p className="text-sm text-gray-600">Name: {customerName}</p>
-              <p className="text-sm text-gray-600">Contact: {contactNumber}</p>
+              {customerName && <p className="text-sm text-gray-600">Name: {customerName}</p>}
+              {contactNumber && <p className="text-sm text-gray-600">Contact: {contactNumber}</p>}
               <p className="text-sm text-gray-600">Service: {serviceType.charAt(0).toUpperCase() + serviceType.slice(1)}</p>
               {serviceType === 'delivery' && <p className="text-sm text-gray-600">Address: {address}</p>}
               {serviceType === 'pickup' && (
