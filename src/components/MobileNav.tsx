@@ -12,14 +12,19 @@ const MobileNav: React.FC<MobileNavProps> = ({ activeCategory, onCategoryClick }
   const handleCategoryClick = (categoryId: string) => {
     onCategoryClick(categoryId);
     
+    console.log('MobileNav: Clicking category:', categoryId);
     // Ensure proper scrolling for mobile
     setTimeout(() => {
       const element = document.getElementById(categoryId);
+      console.log('MobileNav: Found element:', element);
       if (element) {
         const headerHeight = 64;
         const mobileNavHeight = 60;
         const totalOffset = headerHeight + mobileNavHeight + 32;
         const elementPosition = element.offsetTop - totalOffset;
+        console.log('MobileNav: Element offsetTop:', element.offsetTop);
+        console.log('MobileNav: Total offset:', totalOffset);
+        console.log('MobileNav: Scrolling to position:', elementPosition);
         
         window.scrollTo({
           top: elementPosition,

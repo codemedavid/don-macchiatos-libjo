@@ -24,13 +24,15 @@ const DesktopSubNav: React.FC<DesktopSubNavProps> = ({ activeCategory, onCategor
     if (onCategoryClick) {
       onCategoryClick(categoryId);
     } else {
-      // Direct anchor navigation with proper offset calculation
+      console.log('DesktopSubNav: Clicking category:', categoryId);
       const element = document.getElementById(categoryId);
+      console.log('DesktopSubNav: Found element:', element);
       if (element) {
         const headerHeight = 64;
         const subNavHeight = 72;
-        const totalOffset = headerHeight + subNavHeight + 32; // Added more padding
-        const elementPosition = element.offsetTop - offset;
+        const totalOffset = headerHeight + subNavHeight + 32;
+        const elementPosition = element.offsetTop - totalOffset;
+        console.log('DesktopSubNav: Scrolling to position:', elementPosition);
         
         window.scrollTo({
           top: elementPosition,

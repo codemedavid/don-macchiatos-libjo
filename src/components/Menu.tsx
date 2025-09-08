@@ -45,13 +45,18 @@ const Menu: React.FC<MenuProps> = ({
   const handleCategoryClick = (categoryId: string) => {
     setActiveCategory(categoryId);
     
+    console.log('Menu: Clicking category:', categoryId);
     // Scroll to the category section with proper offset
     const element = document.getElementById(categoryId);
+    console.log('Menu: Found element:', element);
     if (element) {
       const headerHeight = 64;
       const subNavHeight = window.innerWidth >= 768 ? 72 : 60; // Desktop subnav or mobile nav
       const totalOffset = headerHeight + subNavHeight + 32;
       const elementPosition = element.offsetTop - totalOffset;
+      console.log('Menu: Element offsetTop:', element.offsetTop);
+      console.log('Menu: Total offset:', totalOffset);
+      console.log('Menu: Scrolling to position:', elementPosition);
       
       window.scrollTo({
         top: elementPosition,
