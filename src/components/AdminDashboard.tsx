@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Edit, Trash2, Save, X, ArrowLeft, Coffee, TrendingUp, Package, Users, Lock, FolderOpen } from 'lucide-react';
+import { Plus, Edit, Trash2, Save, X, ArrowLeft, Coffee, TrendingUp, Package, Users, Lock, FolderOpen, ChevronUp, ChevronDown } from 'lucide-react';
 import { MenuItem, Variation, AddOn } from '../types';
 import { addOnCategories } from '../data/menuData';
 import { useMenu } from '../hooks/useMenu';
@@ -17,6 +17,9 @@ const AdminDashboard: React.FC = () => {
   const { categories } = useCategories();
   const [currentView, setCurrentView] = useState<'dashboard' | 'items' | 'add' | 'edit' | 'categories'>('dashboard');
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
+  const [sortBy, setSortBy] = useState<'name' | 'category' | null>(null);
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [filterCategory, setFilterCategory] = useState<string>('');
   const [formData, setFormData] = useState<Partial<MenuItem>>({
     name: '',
     description: '',
@@ -80,6 +83,60 @@ const AdminDashboard: React.FC = () => {
   const handleCancel = () => {
     setCurrentView(currentView === 'add' || currentView === 'edit' ? 'items' : 'dashboard');
     setEditingItem(null);
+  };
+
+  const handleSort = (field: 'name' | 'category') => {
+    if (sortBy === field) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(field);
+      setSortOrder('asc');
+    }
+    setFilterCategory(''); // Clear category filter when sorting
+  };
+
+  const handleCategoryFilter = (category: string) => {
+    if (filterCategory === category) {
+      setFilterCategory(''); // Clear filter if same category clicked
+    } else {
+      setFilterCategory(category);
+    }
+    setSortBy(null); // Clear sorting when filtering
+  };
+
+  const getFilteredAndSortedItems = () => {
+    let filteredItems = [...menuItems];
+
+    // Apply category filter
+    if (filterCategory) {
+      filteredItems = filteredItems.filter(item => item.category === filterCategory);
+    }
+
+    // Apply sorting
+    if (sortBy) {
+      filteredItems.sort((a, b) => {
+        let aValue = '';
+        let bValue = '';
+
+        if (sortBy === 'name') {
+          aValue = a.name.toLowerCase();
+          bValue = b.name.toLowerCase();
+        } else if (sortBy === 'category') {
+          const aCat = categories.find(cat => cat.id === a.category)?.name || a.category;
+          const bCat = categories.find(cat => cat.id === b.category)?.name || b.category;
+          aValue = aCat.toLowerCase();
+          bValue = bCat.toLowerCase();
+        }
+
+        if (sortOrder === 'asc') {
+          return aValue.localeCompare(bValue);
+        } else {
+          return bValue.localeCompare(aValue);
+        }
+      });
+    }
+
+    return filteredItems;
   };
 
   const addVariation = () => {
@@ -454,8 +511,28 @@ const AdminDashboard: React.FC = () => {
               <table className="w-full">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-900">Name</th>
-                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-900">Category</th>
+                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-900">
+                      <button
+                        onClick={() => handleSort('name')}
+                        className="flex items-center space-x-1 hover:text-black transition-colors duration-200"
+                      >
+                        <span>Name</span>
+                        {sortBy === 'name' && (
+                          sortOrder === 'asc' ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />
+                        )}
+                      </button>
+                    </th>
+                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-900">
+                      <button
+                        onClick={() => handleSort('category')}
+                        className="flex items-center space-x-1 hover:text-black transition-colors duration-200"
+                      >
+                        <span>Category</span>
+                        {sortBy === 'category' && (
+                          sortOrder === 'asc' ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />
+                        )}
+                      </button>
+                    </th>
                     <th className="px-6 py-4 text-left text-sm font-medium text-gray-900">Base Price</th>
                     <th className="px-6 py-4 text-left text-sm font-medium text-gray-900">Variations</th>
                     <th className="px-6 py-4 text-left text-sm font-medium text-gray-900">Add-ons</th>
@@ -464,7 +541,7 @@ const AdminDashboard: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {menuItems.map((item) => (
+                  {getFilteredAndSortedItems().map((item) => (
                     <tr key={item.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4">
                         <div>
@@ -473,7 +550,14 @@ const AdminDashboard: React.FC = () => {
                         </div>
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-500">
-                        {categories.find(cat => cat.id === item.category)?.name}
+                        <button
+                          onClick={() => handleCategoryFilter(item.category)}
+                          className={`hover:text-black transition-colors duration-200 ${
+                            filterCategory === item.category ? 'text-black font-medium' : ''
+                          }`}
+                        >
+                          {categories.find(cat => cat.id === item.category)?.name}
+                        </button>
                       </td>
                       <td className="px-6 py-4 text-sm font-medium text-gray-900">₱{item.basePrice}</td>
                       <td className="px-6 py-4 text-sm text-gray-500">
@@ -519,6 +603,33 @@ const AdminDashboard: React.FC = () => {
                 </tbody>
               </table>
             </div>
+            
+            {/* Filter/Sort Status */}
+            {(sortBy || filterCategory) && (
+              <div className="px-6 py-3 bg-gray-50 border-t flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  {sortBy && (
+                    <span className="text-sm text-gray-600">
+                      Sorted by {sortBy} ({sortOrder === 'asc' ? 'A-Z' : 'Z-A'})
+                    </span>
+                  )}
+                  {filterCategory && (
+                    <span className="text-sm text-gray-600">
+                      Filtered by: {categories.find(cat => cat.id === filterCategory)?.name}
+                    </span>
+                  )}
+                </div>
+                <button
+                  onClick={() => {
+                    setSortBy(null);
+                    setFilterCategory('');
+                  }}
+                  className="text-sm text-gray-500 hover:text-gray-700 transition-colors duration-200"
+                >
+                  Clear all filters
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
