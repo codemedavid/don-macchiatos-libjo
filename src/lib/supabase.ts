@@ -128,6 +128,47 @@ export type Database = {
           created_at?: string;
         };
       };
+      promotional_banners: {
+        Row: {
+          id: string;
+          title: string;
+          description: string | null;
+          image_url: string;
+          link_url: string | null;
+          active: boolean;
+          sort_order: number;
+          start_date: string | null;
+          end_date: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          title: string;
+          description?: string | null;
+          image_url: string;
+          link_url?: string | null;
+          active?: boolean;
+          sort_order?: number;
+          start_date?: string | null;
+          end_date?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          title?: string;
+          description?: string | null;
+          image_url?: string;
+          link_url?: string | null;
+          active?: boolean;
+          sort_order?: number;
+          start_date?: string | null;
+          end_date?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
     };
   };
 };

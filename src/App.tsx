@@ -8,13 +8,25 @@ import Cart from './components/Cart';
 import Checkout from './components/Checkout';
 import FloatingCartButton from './components/FloatingCartButton';
 import AdminDashboard from './components/AdminDashboard';
+import BannerCarousel from './components/BannerCarousel';
+import { useBanners } from './hooks/useBanners';
 import { useMenu } from './hooks/useMenu';
 
 function MainApp() {
   const cart = useCart();
   const { menuItems } = useMenu();
+  const { banners, loading: bannersLoading } = useBanners();
   const [currentView, setCurrentView] = React.useState<'menu' | 'cart' | 'checkout'>('menu');
   const [activeCategory, setActiveCategory] = React.useState('hot-coffee');
+
+  // Filter active banners
+  const activeBanners = banners.filter(banner => {
+    if (!banner.active) return false;
+    const now = new Date();
+    if (banner.start_date && new Date(banner.start_date) > now) return false;
+    if (banner.end_date && new Date(banner.end_date) < now) return false;
+    return true;
+  });
 
   const handleViewChange = (view: 'menu' | 'cart' | 'checkout') => {
     setCurrentView(view);
@@ -26,16 +38,20 @@ function MainApp() {
 
   return (
     <div className="min-h-screen bg-beige-50 font-inter">
-      <Header 
+      <Header
         cartItemsCount={cart.getTotalItems()}
         onCartClick={() => handleViewChange('cart')}
         onMenuClick={() => handleViewChange('menu')}
       />
-      
+
       {currentView === 'menu' && (
         <>
-          <Hero />
-          <Menu 
+          {!bannersLoading && activeBanners.length > 0 ? (
+            <BannerCarousel banners={activeBanners} />
+          ) : (
+            <Hero />
+          )}
+          <Menu
             menuItems={menuItems}
             addToCart={cart.addToCart}
             cartItems={cart.cartItems}
@@ -45,9 +61,9 @@ function MainApp() {
           />
         </>
       )}
-      
+
       {currentView === 'cart' && (
-        <Cart 
+        <Cart
           cartItems={cart.cartItems}
           updateQuantity={cart.updateQuantity}
           removeFromCart={cart.removeFromCart}
@@ -57,17 +73,17 @@ function MainApp() {
           onCheckout={() => handleViewChange('checkout')}
         />
       )}
-      
+
       {currentView === 'checkout' && (
-        <Checkout 
+        <Checkout
           cartItems={cart.cartItems}
           totalPrice={cart.getTotalPrice()}
           onBack={() => handleViewChange('cart')}
         />
       )}
-      
+
       {currentView === 'menu' && (
-        <FloatingCartButton 
+        <FloatingCartButton
           itemCount={cart.getTotalItems()}
           onCartClick={() => handleViewChange('cart')}
         />

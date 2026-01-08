@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { Plus, Edit, Trash2, Save, X, ArrowLeft, Coffee, TrendingUp, Package, Users, Lock, FolderOpen, ChevronUp, ChevronDown } from 'lucide-react';
+import { Plus, Edit, Trash2, Save, X, ArrowLeft, Coffee, TrendingUp, Package, Users, Lock, FolderOpen, ChevronUp, ChevronDown, Image, ArrowUpDown } from 'lucide-react';
 import { MenuItem, Variation, AddOn } from '../types';
 import { addOnCategories } from '../data/menuData';
 import { useMenu } from '../hooks/useMenu';
 import { useCategories } from '../hooks/useCategories';
 import ImageUpload from './ImageUpload';
 import CategoryManager from './CategoryManager';
+import BannerManager from './BannerManager';
+import ReorderManager from './ReorderManager';
 
 
 const AdminDashboard: React.FC = () => {
@@ -14,9 +16,9 @@ const AdminDashboard: React.FC = () => {
   });
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
-  const { menuItems, loading, addMenuItem, updateMenuItem, deleteMenuItem } = useMenu();
+  const { menuItems, loading, addMenuItem, updateMenuItem, deleteMenuItem, reorderMenuItems } = useMenu();
   const { categories } = useCategories();
-  const [currentView, setCurrentView] = useState<'dashboard' | 'items' | 'add' | 'edit' | 'categories'>('dashboard');
+  const [currentView, setCurrentView] = useState<'dashboard' | 'items' | 'add' | 'edit' | 'categories' | 'banners' | 'reorder'>('dashboard');
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
   const [sortBy, setSortBy] = useState<'name' | 'category' | null>(null);
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
@@ -103,6 +105,44 @@ const AdminDashboard: React.FC = () => {
       setFilterCategory(category);
     }
     setSortBy(null); // Clear sorting when filtering
+  };
+
+  const handleMoveUp = async (item: MenuItem) => {
+    const itemsInCategory = menuItems
+      .filter(i => i.category === item.category)
+      .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+
+    const currentIndex = itemsInCategory.findIndex(i => i.id === item.id);
+    if (currentIndex <= 0) return; // Already at top
+
+    // Swap with previous item
+    const newOrder = [...itemsInCategory];
+    [newOrder[currentIndex - 1], newOrder[currentIndex]] = [newOrder[currentIndex], newOrder[currentIndex - 1]];
+
+    try {
+      await reorderMenuItems(newOrder);
+    } catch (error) {
+      alert('Failed to reorder items');
+    }
+  };
+
+  const handleMoveDown = async (item: MenuItem) => {
+    const itemsInCategory = menuItems
+      .filter(i => i.category === item.category)
+      .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+
+    const currentIndex = itemsInCategory.findIndex(i => i.id === item.id);
+    if (currentIndex >= itemsInCategory.length - 1) return; // Already at bottom
+
+    // Swap with next item
+    const newOrder = [...itemsInCategory];
+    [newOrder[currentIndex], newOrder[currentIndex + 1]] = [newOrder[currentIndex + 1], newOrder[currentIndex]];
+
+    try {
+      await reorderMenuItems(newOrder);
+    } catch (error) {
+      alert('Failed to reorder items');
+    }
   };
 
   const getFilteredAndSortedItems = () => {
@@ -226,7 +266,7 @@ const AdminDashboard: React.FC = () => {
             <h1 className="text-2xl font-playfair font-semibold text-black">Admin Access</h1>
             <p className="text-gray-600 mt-2">Enter password to access the admin dashboard</p>
           </div>
-          
+
           <form onSubmit={handleLogin}>
             <div className="mb-6">
               <label className="block text-sm font-medium text-black mb-2">Password</label>
@@ -242,7 +282,7 @@ const AdminDashboard: React.FC = () => {
                 <p className="text-red-500 text-sm mt-2">{loginError}</p>
               )}
             </div>
-            
+
             <button
               type="submit"
               className="w-full bg-black text-white py-3 rounded-lg hover:bg-gray-800 transition-colors duration-200 font-medium"
@@ -553,9 +593,8 @@ const AdminDashboard: React.FC = () => {
                       <td className="px-6 py-4 text-sm text-gray-500">
                         <button
                           onClick={() => handleCategoryFilter(item.category)}
-                          className={`hover:text-black transition-colors duration-200 ${
-                            filterCategory === item.category ? 'text-black font-medium' : ''
-                          }`}
+                          className={`hover:text-black transition-colors duration-200 ${filterCategory === item.category ? 'text-black font-medium' : ''
+                            }`}
                         >
                           {categories.find(cat => cat.id === item.category)?.name}
                         </button>
@@ -574,17 +613,30 @@ const AdminDashboard: React.FC = () => {
                               Popular
                             </span>
                           )}
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            item.available 
-                              ? 'bg-green-100 text-green-800' 
-                              : 'bg-red-100 text-red-800'
-                          }`}>
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${item.available
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-red-100 text-red-800'
+                            }`}>
                             {item.available ? 'Available' : 'Unavailable'}
                           </span>
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="flex items-center space-x-2">
+                        <div className="flex items-center space-x-1">
+                          <button
+                            onClick={() => handleMoveUp(item)}
+                            className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors duration-200"
+                            title="Move up"
+                          >
+                            <ChevronUp className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => handleMoveDown(item)}
+                            className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors duration-200"
+                            title="Move down"
+                          >
+                            <ChevronDown className="h-4 w-4" />
+                          </button>
                           <button
                             onClick={() => handleEditItem(item)}
                             className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors duration-200"
@@ -604,7 +656,7 @@ const AdminDashboard: React.FC = () => {
                 </tbody>
               </table>
             </div>
-            
+
             {/* Filter/Sort Status */}
             {(sortBy || filterCategory) && (
               <div className="px-6 py-3 bg-gray-50 border-t flex items-center justify-between">
@@ -640,6 +692,16 @@ const AdminDashboard: React.FC = () => {
   // Categories View
   if (currentView === 'categories') {
     return <CategoryManager onBack={() => setCurrentView('dashboard')} />;
+  }
+
+  // Banners View
+  if (currentView === 'banners') {
+    return <BannerManager onBack={() => setCurrentView('dashboard')} />;
+  }
+
+  // Reorder View
+  if (currentView === 'reorder') {
+    return <ReorderManager onBack={() => setCurrentView('dashboard')} />;
   }
 
   // Dashboard View
@@ -747,6 +809,20 @@ const AdminDashboard: React.FC = () => {
               >
                 <FolderOpen className="h-5 w-5 text-gray-400" />
                 <span className="font-medium text-gray-900">Manage Categories</span>
+              </button>
+              <button
+                onClick={() => setCurrentView('banners')}
+                className="w-full flex items-center space-x-3 p-3 text-left hover:bg-gray-50 rounded-lg transition-colors duration-200"
+              >
+                <Image className="h-5 w-5 text-gray-400" />
+                <span className="font-medium text-gray-900">Manage Banners</span>
+              </button>
+              <button
+                onClick={() => setCurrentView('reorder')}
+                className="w-full flex items-center space-x-3 p-3 text-left hover:bg-gray-50 rounded-lg transition-colors duration-200"
+              >
+                <ArrowUpDown className="h-5 w-5 text-gray-400" />
+                <span className="font-medium text-gray-900">Re-order Menu</span>
               </button>
             </div>
           </div>

@@ -10,7 +10,7 @@ export const useMenu = () => {
   const fetchMenuItems = async () => {
     try {
       setLoading(true);
-      
+
       // Fetch menu items with their variations and add-ons
       const { data: items, error: itemsError } = await supabase
         .from('menu_items')
@@ -19,7 +19,7 @@ export const useMenu = () => {
           variations (*),
           add_ons (*)
         `)
-        .order('created_at', { ascending: true });
+        .order('sort_order', { ascending: true });
 
       if (itemsError) throw itemsError;
 
@@ -31,6 +31,7 @@ export const useMenu = () => {
         category: item.category,
         popular: item.popular,
         available: item.available ?? true,
+        sort_order: item.sort_order ?? 0,
         image: item.image_url || undefined,
         variations: item.variations?.map(v => ({
           id: v.id,
@@ -57,6 +58,9 @@ export const useMenu = () => {
 
   const addMenuItem = async (item: Omit<MenuItem, 'id'>) => {
     try {
+      // Get the next sort_order value
+      const maxSortOrder = Math.max(...menuItems.map(i => i.sort_order ?? 0), 0);
+
       // Insert menu item
       const { data: menuItem, error: itemError } = await supabase
         .from('menu_items')
@@ -67,6 +71,7 @@ export const useMenu = () => {
           category: item.category,
           popular: item.popular || false,
           available: item.available ?? true,
+          sort_order: maxSortOrder + 1,
           image_url: item.image || null
         })
         .select()
@@ -125,6 +130,7 @@ export const useMenu = () => {
           category: updates.category,
           popular: updates.popular,
           available: updates.available,
+          sort_order: updates.sort_order,
           image_url: updates.image || null
         })
         .eq('id', id);
@@ -189,6 +195,27 @@ export const useMenu = () => {
     }
   };
 
+  const reorderMenuItems = async (reorderedItems: MenuItem[]) => {
+    try {
+      const updates = reorderedItems.map((item, index) => ({
+        id: item.id,
+        sort_order: index + 1
+      }));
+
+      for (const update of updates) {
+        await supabase
+          .from('menu_items')
+          .update({ sort_order: update.sort_order })
+          .eq('id', update.id);
+      }
+
+      await fetchMenuItems();
+    } catch (err) {
+      console.error('Error reordering menu items:', err);
+      throw err;
+    }
+  };
+
   useEffect(() => {
     fetchMenuItems();
   }, []);
@@ -200,6 +227,7 @@ export const useMenu = () => {
     addMenuItem,
     updateMenuItem,
     deleteMenuItem,
+    reorderMenuItems,
     refetch: fetchMenuItems
   };
 };
