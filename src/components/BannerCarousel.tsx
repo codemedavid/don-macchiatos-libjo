@@ -61,26 +61,32 @@ const BannerCarousel: React.FC<BannerCarouselProps> = ({ banners }) => {
                     <div className="absolute inset-0 transition-opacity duration-500">
                         <img
                             src={currentBanner.image_url}
-                            alt={currentBanner.title}
+                            alt={currentBanner.title || 'Banner'}
                             className="w-full h-full object-cover"
                         />
-                        {/* Improved Gradient Overlay */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                        {/* Gradient Overlay - only show if there's text content */}
+                        {(currentBanner.title || currentBanner.description) && (
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                        )}
                     </div>
 
-                    {/* Banner Content */}
-                    <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-10 text-white">
-                        <div className="max-w-4xl">
-                            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-playfair font-bold mb-3 animate-fade-in text-shadow-sm leading-tight">
-                                {currentBanner.title}
-                            </h2>
-                            {currentBanner.description && (
-                                <p className="text-base sm:text-lg md:text-xl text-white/95 max-w-2xl animate-slide-up font-light leading-relaxed">
-                                    {currentBanner.description}
-                                </p>
-                            )}
+                    {/* Banner Content - only show if there's text */}
+                    {(currentBanner.title || currentBanner.description) && (
+                        <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-10 text-white">
+                            <div className="max-w-4xl">
+                                {currentBanner.title && (
+                                    <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-playfair font-bold mb-3 animate-fade-in text-shadow-sm leading-tight">
+                                        {currentBanner.title}
+                                    </h2>
+                                )}
+                                {currentBanner.description && (
+                                    <p className="text-base sm:text-lg md:text-xl text-white/95 max-w-2xl animate-slide-up font-light leading-relaxed">
+                                        {currentBanner.description}
+                                    </p>
+                                )}
+                            </div>
                         </div>
-                    </div>
+                    )}
 
                     {/* Navigation Arrows (only show if multiple banners) */}
                     {banners.length > 1 && (
@@ -110,8 +116,8 @@ const BannerCarousel: React.FC<BannerCarouselProps> = ({ banners }) => {
                                     key={index}
                                     onClick={(e) => { e.stopPropagation(); goToSlide(index); }}
                                     className={`h-1.5 sm:h-2 rounded-full transition-all duration-300 ${index === currentIndex
-                                            ? 'bg-white w-8 sm:w-10'
-                                            : 'bg-white/40 hover:bg-white/60 w-4 sm:w-6'
+                                        ? 'bg-white w-8 sm:w-10'
+                                        : 'bg-white/40 hover:bg-white/60 w-4 sm:w-6'
                                         }`}
                                     aria-label={`Go to banner ${index + 1}`}
                                 />

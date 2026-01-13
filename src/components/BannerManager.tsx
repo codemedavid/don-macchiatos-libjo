@@ -70,8 +70,8 @@ const BannerManager: React.FC<BannerManagerProps> = ({ onBack }) => {
     };
 
     const handleSaveBanner = async () => {
-        if (!formData.title || !formData.image_url) {
-            alert('Please fill in title and upload an image');
+        if (!formData.image_url) {
+            alert('Please upload an image for the banner');
             return;
         }
 
@@ -188,7 +188,7 @@ const BannerManager: React.FC<BannerManagerProps> = ({ onBack }) => {
                     <div className="bg-white rounded-xl shadow-sm p-8">
                         <div className="grid grid-cols-1 gap-6 mb-8">
                             <div>
-                                <label className="block text-sm font-medium text-black mb-2">Banner Title *</label>
+                                <label className="block text-sm font-medium text-black mb-2">Banner Title (Optional)</label>
                                 <input
                                     type="text"
                                     value={formData.title}
