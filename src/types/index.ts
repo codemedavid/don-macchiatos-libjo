@@ -4,6 +4,13 @@ export interface Variation {
   price: number;
 }
 
+export interface ServingPreferenceOption {
+  id: string;
+  name: string;
+  value: string;
+  price: number;
+}
+
 export interface AddOn {
   id: string;
   name: string;
@@ -22,12 +29,14 @@ export interface MenuItem {
   available?: boolean;
   sort_order?: number;
   variations?: Variation[];
+  servingPreferences?: ServingPreferenceOption[];
   addOns?: AddOn[];
 }
 
 export interface CartItem extends MenuItem {
   quantity: number;
   selectedVariation?: Variation;
+  selectedServingPreference?: ServingPreferenceOption;
   selectedAddOns?: AddOn[];
   totalPrice: number;
 }

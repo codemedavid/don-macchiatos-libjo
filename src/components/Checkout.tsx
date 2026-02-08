@@ -55,6 +55,9 @@ ${cartItems.map(item => {
   if (item.selectedVariation) {
     itemDetails += ` (${item.selectedVariation.name})`;
   }
+  if (item.selectedServingPreference) {
+    itemDetails += ` [${item.selectedServingPreference.name}]`;
+  }
   if (item.selectedAddOns && item.selectedAddOns.length > 0) {
     itemDetails += ` + ${item.selectedAddOns.map(addOn => addOn.name).join(', ')}`;
   }
@@ -109,6 +112,9 @@ Please confirm this order to proceed. Thank you for choosing Beracah Cafe! ☕
                     <h4 className="font-medium text-black">{item.name}</h4>
                     {item.selectedVariation && (
                       <p className="text-sm text-gray-600">Size: {item.selectedVariation.name}</p>
+                    )}
+                    {item.selectedServingPreference && (
+                      <p className="text-sm text-gray-600">Serving: {item.selectedServingPreference.name}</p>
                     )}
                     {item.selectedAddOns && item.selectedAddOns.length > 0 && (
                       <p className="text-sm text-gray-600">

@@ -102,6 +102,32 @@ export type Database = {
           created_at?: string;
         };
       };
+      serving_preferences: {
+        Row: {
+          id: string;
+          menu_item_id: string;
+          name: string;
+          value: string;
+          price: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          menu_item_id: string;
+          name: string;
+          value: string;
+          price?: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          menu_item_id?: string;
+          name?: string;
+          value?: string;
+          price?: number;
+          created_at?: string;
+        };
+      };
       add_ons: {
         Row: {
           id: string;

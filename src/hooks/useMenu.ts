@@ -11,12 +11,13 @@ export const useMenu = () => {
     try {
       setLoading(true);
 
-      // Fetch menu items with their variations and add-ons
+      // Fetch menu items with their option groups
       const { data: items, error: itemsError } = await supabase
         .from('menu_items')
         .select(`
           *,
           variations (*),
+          serving_preferences (*),
           add_ons (*)
         `)
         .order('sort_order', { ascending: true });
@@ -37,6 +38,12 @@ export const useMenu = () => {
           id: v.id,
           name: v.name,
           price: v.price
+        })) || [],
+        servingPreferences: item.serving_preferences?.map(s => ({
+          id: s.id,
+          name: s.name,
+          value: s.value,
+          price: s.price
         })) || [],
         addOns: item.add_ons?.map(a => ({
           id: a.id,
@@ -94,6 +101,22 @@ export const useMenu = () => {
         if (variationsError) throw variationsError;
       }
 
+      // Insert serving preferences if any
+      if (item.servingPreferences && item.servingPreferences.length > 0) {
+        const { error: servingPreferencesError } = await supabase
+          .from('serving_preferences')
+          .insert(
+            item.servingPreferences.map(s => ({
+              menu_item_id: menuItem.id,
+              name: s.name,
+              value: s.value,
+              price: s.price
+            }))
+          );
+
+        if (servingPreferencesError) throw servingPreferencesError;
+      }
+
       // Insert add-ons if any
       if (item.addOns && item.addOns.length > 0) {
         const { error: addOnsError } = await supabase
@@ -137,8 +160,9 @@ export const useMenu = () => {
 
       if (itemError) throw itemError;
 
-      // Delete existing variations and add-ons
+      // Delete existing option records
       await supabase.from('variations').delete().eq('menu_item_id', id);
+      await supabase.from('serving_preferences').delete().eq('menu_item_id', id);
       await supabase.from('add_ons').delete().eq('menu_item_id', id);
 
       // Insert new variations
@@ -154,6 +178,22 @@ export const useMenu = () => {
           );
 
         if (variationsError) throw variationsError;
+      }
+
+      // Insert new serving preferences
+      if (updates.servingPreferences && updates.servingPreferences.length > 0) {
+        const { error: servingPreferencesError } = await supabase
+          .from('serving_preferences')
+          .insert(
+            updates.servingPreferences.map(s => ({
+              menu_item_id: id,
+              name: s.name,
+              value: s.value,
+              price: s.price
+            }))
+          );
+
+        if (servingPreferencesError) throw servingPreferencesError;
       }
 
       // Insert new add-ons

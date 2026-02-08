@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Plus, Edit, Trash2, Save, X, ArrowLeft, Coffee, TrendingUp, Package, Users, Lock, FolderOpen, ChevronUp, ChevronDown, Image, ArrowUpDown } from 'lucide-react';
-import { MenuItem, Variation, AddOn } from '../types';
+import { MenuItem, Variation, AddOn, ServingPreferenceOption } from '../types';
 import { addOnCategories } from '../data/menuData';
 import { useMenu } from '../hooks/useMenu';
 import { useCategories } from '../hooks/useCategories';
@@ -31,6 +31,7 @@ const AdminDashboard: React.FC = () => {
     popular: false,
     available: true,
     variations: [],
+    servingPreferences: [],
     addOns: []
   });
 
@@ -44,6 +45,7 @@ const AdminDashboard: React.FC = () => {
       popular: false,
       available: true,
       variations: [],
+      servingPreferences: [],
       addOns: []
     });
   };
@@ -201,6 +203,34 @@ const AdminDashboard: React.FC = () => {
   const removeVariation = (index: number) => {
     const updatedVariations = formData.variations?.filter((_, i) => i !== index) || [];
     setFormData({ ...formData, variations: updatedVariations });
+  };
+
+  const addServingPreference = () => {
+    const newServingPreference: ServingPreferenceOption = {
+      id: `sp-${Date.now()}`,
+      name: '',
+      value: '',
+      price: 0
+    };
+    setFormData({
+      ...formData,
+      servingPreferences: [...(formData.servingPreferences || []), newServingPreference]
+    });
+  };
+
+  const updateServingPreference = (
+    index: number,
+    field: keyof ServingPreferenceOption,
+    value: string | number
+  ) => {
+    const updatedServingPreferences = [...(formData.servingPreferences || [])];
+    updatedServingPreferences[index] = { ...updatedServingPreferences[index], [field]: value };
+    setFormData({ ...formData, servingPreferences: updatedServingPreferences });
+  };
+
+  const removeServingPreference = (index: number) => {
+    const updatedServingPreferences = formData.servingPreferences?.filter((_, i) => i !== index) || [];
+    setFormData({ ...formData, servingPreferences: updatedServingPreferences });
   };
 
   const addAddOn = () => {
@@ -457,6 +487,52 @@ const AdminDashboard: React.FC = () => {
                   />
                   <button
                     onClick={() => removeVariation(index)}
+                    className="p-2 text-red-500 hover:text-red-600 hover:bg-red-50 rounded transition-colors duration-200"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            {/* Serving Preferences Section */}
+            <div className="mb-8">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-playfair font-medium text-black">Serving Preferences</h3>
+                <button
+                  onClick={addServingPreference}
+                  className="flex items-center space-x-2 px-3 py-2 bg-gray-100 text-black rounded-lg hover:bg-gray-200 transition-colors duration-200"
+                >
+                  <Plus className="h-4 w-4" />
+                  <span>Add Serving Preference</span>
+                </button>
+              </div>
+
+              {formData.servingPreferences?.map((servingPreference, index) => (
+                <div key={servingPreference.id} className="flex items-center space-x-3 mb-3 p-4 bg-gray-50 rounded-lg">
+                  <input
+                    type="text"
+                    value={servingPreference.name}
+                    onChange={(e) => updateServingPreference(index, 'name', e.target.value)}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-black focus:border-transparent"
+                    placeholder="Display name (e.g., Hot, Iced)"
+                  />
+                  <input
+                    type="text"
+                    value={servingPreference.value}
+                    onChange={(e) => updateServingPreference(index, 'value', e.target.value)}
+                    className="w-32 px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-black focus:border-transparent"
+                    placeholder="Value (e.g., hot)"
+                  />
+                  <input
+                    type="number"
+                    value={servingPreference.price}
+                    onChange={(e) => updateServingPreference(index, 'price', Number(e.target.value))}
+                    className="w-24 px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-black focus:border-transparent"
+                    placeholder="Price"
+                  />
+                  <button
+                    onClick={() => removeServingPreference(index)}
                     className="p-2 text-red-500 hover:text-red-600 hover:bg-red-50 rounded transition-colors duration-200"
                   >
                     <Trash2 className="h-4 w-4" />

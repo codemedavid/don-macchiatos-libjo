@@ -1,5 +1,5 @@
 import React from 'react';
-import { MenuItem, CartItem } from '../types';
+import { MenuItem, CartItem, Variation, ServingPreferenceOption, AddOn } from '../types';
 import { useCategories } from '../hooks/useCategories';
 import MenuItemCard from './MenuItemCard';
 import MobileNav from './MobileNav';
@@ -7,7 +7,13 @@ import DesktopSubNav from './DesktopSubNav';
 
 interface MenuProps {
   menuItems: MenuItem[];
-  addToCart: (item: MenuItem, quantity?: number, variation?: any, addOns?: any[]) => void;
+  addToCart: (
+    item: MenuItem,
+    quantity?: number,
+    variation?: Variation,
+    servingPreference?: ServingPreferenceOption,
+    addOns?: AddOn[]
+  ) => void;
   cartItems: CartItem[];
   updateQuantity: (id: string, quantity: number) => void;
   activeCategory?: string;

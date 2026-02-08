@@ -67,6 +67,11 @@ const Cart: React.FC<CartProps> = ({
                 {item.selectedVariation && (
                   <p className="text-sm text-gray-500 mb-1">Size: {item.selectedVariation.name}</p>
                 )}
+                {item.selectedServingPreference && (
+                  <p className="text-sm text-gray-500 mb-1">
+                    Serving: {item.selectedServingPreference.name}
+                  </p>
+                )}
                 {item.selectedAddOns && item.selectedAddOns.length > 0 && (
                   <p className="text-sm text-gray-500 mb-1">
                     Add-ons: {item.selectedAddOns.map(addOn => addOn.name).join(', ')}
