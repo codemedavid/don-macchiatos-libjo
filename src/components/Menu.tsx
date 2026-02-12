@@ -10,7 +10,7 @@ interface MenuProps {
   addToCart: (
     item: MenuItem,
     quantity?: number,
-    variation?: Variation,
+    variations?: Variation[],
     servingPreference?: ServingPreferenceOption,
     addOns?: AddOn[]
   ) => void;
@@ -20,17 +20,17 @@ interface MenuProps {
   onCategoryChange?: (categoryId: string) => void;
 }
 
-const Menu: React.FC<MenuProps> = ({ 
-  menuItems, 
-  addToCart, 
-  cartItems, 
-  updateQuantity, 
+const Menu: React.FC<MenuProps> = ({
+  menuItems,
+  addToCart,
+  cartItems,
+  updateQuantity,
   activeCategory: propActiveCategory,
-  onCategoryChange 
+  onCategoryChange
 }) => {
   const { categories } = useCategories();
   const [localActiveCategory, setLocalActiveCategory] = React.useState('hot-coffee');
-  
+
   const activeCategory = propActiveCategory || localActiveCategory;
   const setActiveCategory = onCategoryChange || setLocalActiveCategory;
 
@@ -44,23 +44,23 @@ const Menu: React.FC<MenuProps> = ({
         }
       });
     };
-    
+
     // Start preloading immediately
     preloadImages();
   }, [menuItems]);
 
   const handleCategoryClick = (categoryId: string) => {
     setActiveCategory(categoryId);
-    
+
     // Scroll to the category section
     const element = document.getElementById(categoryId);
     if (element) {
       const headerHeight = 64;
       const subNavHeight = window.innerWidth >= 768 ? 72 : 60;
       const offset = headerHeight + subNavHeight + 20;
-      
+
       const elementPosition = element.getBoundingClientRect().top + window.pageYOffset - offset;
-      
+
       window.scrollTo({
         top: elementPosition,
         behavior: 'smooth'
@@ -83,14 +83,14 @@ const Menu: React.FC<MenuProps> = ({
         // Find the entry with the largest intersection ratio
         let maxRatio = 0;
         let activeSection = '';
-        
+
         entries.forEach((entry) => {
           if (entry.intersectionRatio > maxRatio) {
             maxRatio = entry.intersectionRatio;
             activeSection = entry.target.id;
           }
         });
-        
+
         // Only update if we have a significant intersection and it's different
         if (maxRatio > 0.1 && activeSection && activeSection !== activeCategory) {
           setActiveCategory(activeSection);
@@ -116,52 +116,52 @@ const Menu: React.FC<MenuProps> = ({
 
   return (
     <>
-      <DesktopSubNav 
+      <DesktopSubNav
         activeCategory={activeCategory}
         onCategoryClick={handleCategoryClick}
       />
-      <MobileNav 
+      <MobileNav
         activeCategory={activeCategory}
         onCategoryClick={handleCategoryClick}
       />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <div className="text-center mb-12">
-        <h2 className="text-4xl font-playfair font-semibold text-black mb-4">Our Menu</h2>
-        <p className="text-gray-600 max-w-2xl mx-auto">
-          Discover our selection of premium coffees, refreshing drinks, and delicious pastries, 
-          all crafted with love and the finest ingredients.
-        </p>
-      </div>
+        <div className="text-center mb-12">
+          <h2 className="text-4xl font-playfair font-semibold text-black mb-4">Our Menu</h2>
+          <p className="text-gray-600 max-w-2xl mx-auto">
+            Discover our selection of premium coffees, refreshing drinks, and delicious pastries,
+            all crafted with love and the finest ingredients.
+          </p>
+        </div>
 
-      {categories.map((category) => {
-        const categoryItems = menuItems.filter(item => item.category === category.id);
-        
-        if (categoryItems.length === 0) return null;
-        
-        return (
-          <section key={category.id} id={category.id} className="mb-16">
-            <div className="flex items-center mb-8">
-              <span className="text-3xl mr-3">{category.icon}</span>
-              <h3 className="text-3xl font-playfair font-medium text-black">{category.name}</h3>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {categoryItems.map((item) => {
-                const cartItem = cartItems.find(cartItem => cartItem.id === item.id);
-                return (
-                  <MenuItemCard
-                    key={item.id}
-                    item={item}
-                    onAddToCart={addToCart}
-                    quantity={cartItem?.quantity || 0}
-                    onUpdateQuantity={updateQuantity}
-                  />
-                );
-              })}
-            </div>
-          </section>
-        );
-      })}
+        {categories.map((category) => {
+          const categoryItems = menuItems.filter(item => item.category === category.id);
+
+          if (categoryItems.length === 0) return null;
+
+          return (
+            <section key={category.id} id={category.id} className="mb-16">
+              <div className="flex items-center mb-8">
+                <span className="text-3xl mr-3">{category.icon}</span>
+                <h3 className="text-3xl font-playfair font-medium text-black">{category.name}</h3>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {categoryItems.map((item) => {
+                  const cartItem = cartItems.find(cartItem => cartItem.id === item.id);
+                  return (
+                    <MenuItemCard
+                      key={item.id}
+                      item={item}
+                      onAddToCart={addToCart}
+                      quantity={cartItem?.quantity || 0}
+                      onUpdateQuantity={updateQuantity}
+                    />
+                  );
+                })}
+              </div>
+            </section>
+          );
+        })}
       </main>
     </>
   );

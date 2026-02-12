@@ -1,4 +1,5 @@
 import React from 'react';
+import { MenuItem } from './types';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { useCart } from './hooks/useCart';
 import Header from './components/Header';
@@ -9,15 +10,22 @@ import Checkout from './components/Checkout';
 import FloatingCartButton from './components/FloatingCartButton';
 import AdminDashboard from './components/AdminDashboard';
 import BannerCarousel from './components/BannerCarousel';
+import UpgradeMealUpsell from './components/UpgradeMealUpsell';
+import BeforeYouGoUpsell from './components/BeforeYouGoUpsell';
 import { useBanners } from './hooks/useBanners';
 import { useMenu } from './hooks/useMenu';
+import { useUpsells } from './hooks/useUpsells';
 
 function MainApp() {
   const cart = useCart();
   const { menuItems } = useMenu();
+  const { upsells } = useUpsells();
   const { banners, loading: bannersLoading } = useBanners();
   const [currentView, setCurrentView] = React.useState<'menu' | 'cart' | 'checkout'>('menu');
   const [activeCategory, setActiveCategory] = React.useState('hot-coffee');
+  const [upsellFlow, setUpsellFlow] = React.useState<'none' | 'upgrade_meal' | 'before_you_go'>('none');
+  const [showAddToCartUpsell, setShowAddToCartUpsell] = React.useState(false);
+  const [upsellTriggerItem, setUpsellTriggerItem] = React.useState<MenuItem | null>(null);
 
   // Filter active banners
   const activeBanners = banners.filter(banner => {
@@ -28,8 +36,57 @@ function MainApp() {
     return true;
   });
 
+  // Wrapped addToCart that checks for upgrade_meal upsells after adding an item
+  const handleAddToCart = React.useCallback(
+    (item: import('./types').MenuItem, quantity?: number, variations?: import('./types').Variation[], servingPreference?: import('./types').ServingPreferenceOption, addOns?: import('./types').AddOn[]) => {
+      // Add the item to cart first
+      cart.addToCart(item, quantity, variations, servingPreference, addOns);
+
+      // Check if this item triggers any upgrade_meal upsells
+      const hasUpgradeUpsell = upsells.some(
+        u => u.type === 'upgrade_meal' && u.active && u.trigger_item_ids.includes(item.id)
+      );
+
+      if (hasUpgradeUpsell) {
+        setUpsellTriggerItem(item);
+        setShowAddToCartUpsell(true);
+      }
+    },
+    [cart.addToCart, upsells]
+  );
+
   const handleViewChange = (view: 'menu' | 'cart' | 'checkout') => {
-    setCurrentView(view);
+    if (view === 'checkout' && currentView === 'cart') {
+      // Check if there are any "before_you_go" upsell items not already in cart
+      const cartMenuItemIds = cart.cartItems.map(ci => ci.menuItemId);
+      const activeBeforeYouGoUpsells = upsells.filter(u => u.type === 'before_you_go' && u.active);
+      const allOfferIds = [...new Set(activeBeforeYouGoUpsells.flatMap(u => u.offer_item_ids))];
+      const hasUpsellItemsToShow = allOfferIds.some(id => {
+        const item = menuItems.find(mi => mi.id === id);
+        return item && item.available !== false && !cartMenuItemIds.includes(id);
+      });
+
+      if (hasUpsellItemsToShow) {
+        // Intercept: show "Before You Go" upsell before checkout
+        setUpsellFlow('before_you_go');
+      } else {
+        // No upsell items to show — go directly to checkout
+        setCurrentView('checkout');
+      }
+    } else {
+      setCurrentView(view);
+    }
+  };
+
+  const handleUpgradeDismiss = () => {
+    // Move to next step: Before You Go
+    setUpsellFlow('before_you_go');
+  };
+
+  const handleBeforeYouGoDismiss = () => {
+    // Done with upsell flow — navigate to checkout
+    setUpsellFlow('none');
+    setCurrentView('checkout');
   };
 
   const handleCategoryChange = (categoryId: string) => {
@@ -53,7 +110,7 @@ function MainApp() {
           )}
           <Menu
             menuItems={menuItems}
-            addToCart={cart.addToCart}
+            addToCart={handleAddToCart}
             cartItems={cart.cartItems}
             updateQuantity={cart.updateQuantity}
             activeCategory={activeCategory}
@@ -86,6 +143,42 @@ function MainApp() {
         <FloatingCartButton
           itemCount={cart.getTotalItems()}
           onCartClick={() => handleViewChange('cart')}
+        />
+      )}
+
+      {/* Upgrade Upsell triggered by adding a trigger item to cart */}
+      {showAddToCartUpsell && upsellTriggerItem && (
+        <UpgradeMealUpsell
+          triggerItem={upsellTriggerItem}
+          cartItems={cart.cartItems}
+          menuItems={menuItems}
+          upsells={upsells}
+          onAddToCart={cart.addToCart}
+          onDismiss={() => {
+            setShowAddToCartUpsell(false);
+            setUpsellTriggerItem(null);
+          }}
+        />
+      )}
+
+      {/* Upsell Overlay Flow (cart → checkout) */}
+      {upsellFlow === 'upgrade_meal' && (
+        <UpgradeMealUpsell
+          cartItems={cart.cartItems}
+          menuItems={menuItems}
+          upsells={upsells}
+          onAddToCart={cart.addToCart}
+          onDismiss={handleUpgradeDismiss}
+        />
+      )}
+
+      {upsellFlow === 'before_you_go' && (
+        <BeforeYouGoUpsell
+          cartItems={cart.cartItems}
+          menuItems={menuItems}
+          upsells={upsells}
+          onAddToCart={cart.addToCart}
+          onDismiss={handleBeforeYouGoDismiss}
         />
       )}
     </div>

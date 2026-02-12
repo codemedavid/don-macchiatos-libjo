@@ -7,13 +7,15 @@ export const useCart = () => {
 
   const calculateItemPrice = (
     item: MenuItem,
-    variation?: Variation,
+    variations?: Variation[],
     servingPreference?: ServingPreferenceOption,
     addOns?: AddOn[]
   ) => {
     let price = item.basePrice;
-    if (variation) {
-      price += variation.price;
+    if (variations) {
+      variations.forEach(v => {
+        price += v.price;
+      });
     }
     if (servingPreference) {
       price += servingPreference.price;
@@ -29,20 +31,18 @@ export const useCart = () => {
   const addToCart = useCallback((
     item: MenuItem,
     quantity: number = 1,
-    variation?: Variation,
+    variations?: Variation[],
     servingPreference?: ServingPreferenceOption,
     addOns?: AddOn[]
   ) => {
-    const totalPrice = calculateItemPrice(item, variation, servingPreference, addOns);
-    
+    const totalPrice = calculateItemPrice(item, variations, servingPreference, addOns);
+
+    const variationIds = variations?.map(v => v.id).sort().join(',') || 'none';
+    const uniqueId = `${item.id}-${variationIds}-${servingPreference?.id || 'default'}-${addOns?.map(a => a.id).join(',') || 'none'}`;
+
     setCartItems(prev => {
-      const existingItem = prev.find(cartItem => 
-        cartItem.id === item.id && 
-        cartItem.selectedVariation?.id === variation?.id &&
-        cartItem.selectedServingPreference?.id === servingPreference?.id &&
-        JSON.stringify(cartItem.selectedAddOns?.map(a => a.id).sort()) === JSON.stringify(addOns?.map(a => a.id).sort())
-      );
-      
+      const existingItem = prev.find(cartItem => cartItem.id === uniqueId);
+
       if (existingItem) {
         return prev.map(cartItem =>
           cartItem === existingItem
@@ -50,12 +50,12 @@ export const useCart = () => {
             : cartItem
         );
       } else {
-        const uniqueId = `${item.id}-${variation?.id || 'default'}-${servingPreference?.id || 'default'}-${addOns?.map(a => a.id).join(',') || 'none'}`;
-        return [...prev, { 
+        return [...prev, {
           ...item,
           id: uniqueId,
+          menuItemId: item.id,
           quantity,
-          selectedVariation: variation,
+          selectedVariations: variations || [],
           selectedServingPreference: servingPreference,
           selectedAddOns: addOns || [],
           totalPrice
@@ -69,7 +69,7 @@ export const useCart = () => {
       removeFromCart(id);
       return;
     }
-    
+
     setCartItems(prev =>
       prev.map(item =>
         item.id === id ? { ...item, quantity } : item

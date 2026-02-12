@@ -8,6 +8,7 @@ import ImageUpload from './ImageUpload';
 import CategoryManager from './CategoryManager';
 import BannerManager from './BannerManager';
 import ReorderManager from './ReorderManager';
+import UpsellManager from './UpsellManager';
 
 
 const AdminDashboard: React.FC = () => {
@@ -18,7 +19,7 @@ const AdminDashboard: React.FC = () => {
   const [loginError, setLoginError] = useState('');
   const { menuItems, loading, addMenuItem, updateMenuItem, deleteMenuItem, reorderMenuItems } = useMenu();
   const { categories } = useCategories();
-  const [currentView, setCurrentView] = useState<'dashboard' | 'items' | 'add' | 'edit' | 'categories' | 'banners' | 'reorder'>('dashboard');
+  const [currentView, setCurrentView] = useState<'dashboard' | 'items' | 'add' | 'edit' | 'categories' | 'banners' | 'reorder' | 'upsells'>('dashboard');
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
   const [sortBy, setSortBy] = useState<'name' | 'category' | null>(null);
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
@@ -186,7 +187,8 @@ const AdminDashboard: React.FC = () => {
     const newVariation: Variation = {
       id: `var-${Date.now()}`,
       name: '',
-      price: 0
+      price: 0,
+      type: 'Size'
     };
     setFormData({
       ...formData,
@@ -459,7 +461,10 @@ const AdminDashboard: React.FC = () => {
             {/* Variations Section */}
             <div className="mb-8">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-playfair font-medium text-black">Size Variations</h3>
+                <div>
+                  <h3 className="text-lg font-playfair font-medium text-black">Variations</h3>
+                  <p className="text-sm text-gray-500 mt-1">Add different variation types like Size, Flavor, Milk, etc.</p>
+                </div>
                 <button
                   onClick={addVariation}
                   className="flex items-center space-x-2 px-3 py-2 bg-gray-100 text-black rounded-lg hover:bg-gray-200 transition-colors duration-200"
@@ -469,30 +474,63 @@ const AdminDashboard: React.FC = () => {
                 </button>
               </div>
 
-              {formData.variations?.map((variation, index) => (
-                <div key={variation.id} className="flex items-center space-x-3 mb-3 p-4 bg-gray-50 rounded-lg">
-                  <input
-                    type="text"
-                    value={variation.name}
-                    onChange={(e) => updateVariation(index, 'name', e.target.value)}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-black focus:border-transparent"
-                    placeholder="Variation name (e.g., Small, Medium, Large)"
-                  />
-                  <input
-                    type="number"
-                    value={variation.price}
-                    onChange={(e) => updateVariation(index, 'price', Number(e.target.value))}
-                    className="w-24 px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-black focus:border-transparent"
-                    placeholder="Price"
-                  />
-                  <button
-                    onClick={() => removeVariation(index)}
-                    className="p-2 text-red-500 hover:text-red-600 hover:bg-red-50 rounded transition-colors duration-200"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </div>
-              ))}
+              {formData.variations?.map((variation, index) => {
+                const presetTypes = ['Size', 'Flavor', 'Milk', 'Temperature', 'Sweetness'];
+                const currentType = typeof variation.type === 'string' ? variation.type : 'Size';
+                const isCustom = currentType === '' || !presetTypes.includes(currentType);
+                return (
+                  <div key={variation.id} className="flex flex-wrap items-center gap-3 mb-3 p-4 bg-gray-50 rounded-lg">
+                    <select
+                      value={isCustom ? '__custom__' : currentType}
+                      onChange={(e) => {
+                        if (e.target.value === '__custom__') {
+                          updateVariation(index, 'type', '');
+                        } else {
+                          updateVariation(index, 'type', e.target.value);
+                        }
+                      }}
+                      className="w-32 px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-black focus:border-transparent bg-white text-sm"
+                    >
+                      <option value="Size">Size</option>
+                      <option value="Flavor">Flavor</option>
+                      <option value="Milk">Milk</option>
+                      <option value="Temperature">Temperature</option>
+                      <option value="Sweetness">Sweetness</option>
+                      <option value="__custom__">Custom...</option>
+                    </select>
+                    {(isCustom || currentType === '') && (
+                      <input
+                        type="text"
+                        value={currentType}
+                        onChange={(e) => updateVariation(index, 'type', e.target.value)}
+                        className="w-28 px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-black focus:border-transparent text-sm"
+                        placeholder="Custom type"
+                        autoFocus
+                      />
+                    )}
+                    <input
+                      type="text"
+                      value={variation.name}
+                      onChange={(e) => updateVariation(index, 'name', e.target.value)}
+                      className="flex-1 min-w-[120px] px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-black focus:border-transparent"
+                      placeholder="Variation name (e.g., Small, Medium, Large)"
+                    />
+                    <input
+                      type="number"
+                      value={variation.price}
+                      onChange={(e) => updateVariation(index, 'price', Number(e.target.value))}
+                      className="w-24 px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-black focus:border-transparent"
+                      placeholder="Price"
+                    />
+                    <button
+                      onClick={() => removeVariation(index)}
+                      className="p-2 text-red-500 hover:text-red-600 hover:bg-red-50 rounded transition-colors duration-200"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                );
+              })}
             </div>
 
             {/* Serving Preferences Section */}
@@ -780,6 +818,11 @@ const AdminDashboard: React.FC = () => {
     return <ReorderManager onBack={() => setCurrentView('dashboard')} />;
   }
 
+  // Upsells View
+  if (currentView === 'upsells') {
+    return <UpsellManager onBack={() => setCurrentView('dashboard')} />;
+  }
+
   // Dashboard View
   return (
     <div className="min-h-screen bg-gray-50">
@@ -899,6 +942,13 @@ const AdminDashboard: React.FC = () => {
               >
                 <ArrowUpDown className="h-5 w-5 text-gray-400" />
                 <span className="font-medium text-gray-900">Re-order Menu</span>
+              </button>
+              <button
+                onClick={() => setCurrentView('upsells')}
+                className="w-full flex items-center space-x-3 p-3 text-left hover:bg-gray-50 rounded-lg transition-colors duration-200"
+              >
+                <TrendingUp className="h-5 w-5 text-gray-400" />
+                <span className="font-medium text-gray-900">Manage Upsells</span>
               </button>
             </div>
           </div>

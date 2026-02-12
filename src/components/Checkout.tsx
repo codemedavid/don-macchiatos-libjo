@@ -35,10 +35,10 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack }) =>
   };
 
   const handlePlaceOrder = () => {
-    const timeInfo = serviceType === 'pickup' 
+    const timeInfo = serviceType === 'pickup'
       ? (pickupTime === 'custom' ? customTime : `${pickupTime} minutes`)
       : '';
-    
+
     const orderDetails = `
 🛒 BERACAH CAFE ORDER
 
@@ -51,19 +51,19 @@ ${serviceType === 'pickup' ? `⏰ Pickup Time: ${timeInfo}` : ''}
 
 📋 ORDER DETAILS:
 ${cartItems.map(item => {
-  let itemDetails = `• ${item.name}`;
-  if (item.selectedVariation) {
-    itemDetails += ` (${item.selectedVariation.name})`;
-  }
-  if (item.selectedServingPreference) {
-    itemDetails += ` [${item.selectedServingPreference.name}]`;
-  }
-  if (item.selectedAddOns && item.selectedAddOns.length > 0) {
-    itemDetails += ` + ${item.selectedAddOns.map(addOn => addOn.name).join(', ')}`;
-  }
-  itemDetails += ` x${item.quantity} - ₱${item.totalPrice * item.quantity}`;
-  return itemDetails;
-}).join('\n')}
+      let itemDetails = `• ${item.name}`;
+      if (item.selectedVariations && item.selectedVariations.length > 0) {
+        itemDetails += ` (${item.selectedVariations.map(v => `${v.type}: ${v.name}`).join(', ')})`;
+      }
+      if (item.selectedServingPreference) {
+        itemDetails += ` [${item.selectedServingPreference.name}]`;
+      }
+      if (item.selectedAddOns && item.selectedAddOns.length > 0) {
+        itemDetails += ` + ${item.selectedAddOns.map(addOn => addOn.name).join(', ')}`;
+      }
+      itemDetails += ` x${item.quantity} - ₱${item.totalPrice * item.quantity}`;
+      return itemDetails;
+    }).join('\n')}
 
 💰 TOTAL: ₱${totalPrice}
 
@@ -76,14 +76,14 @@ Please confirm this order to proceed. Thank you for choosing Beracah Cafe! ☕
 
     const encodedMessage = encodeURIComponent(orderDetails);
     const messengerUrl = `https://m.me/BeracahCafeUptown?text=${encodedMessage}`;
-    
+
     window.open(messengerUrl, '_blank');
-    
+
   };
 
-  const isDetailsValid = 
+  const isDetailsValid =
     (serviceType === 'dine-in' || (customerName && contactNumber)) &&
-    (serviceType !== 'delivery' || address) && 
+    (serviceType !== 'delivery' || address) &&
     (serviceType !== 'pickup' || (pickupTime !== 'custom' || customTime));
 
   if (step === 'details') {
@@ -104,14 +104,16 @@ Please confirm this order to proceed. Thank you for choosing Beracah Cafe! ☕
           {/* Order Summary */}
           <div className="bg-white rounded-xl shadow-sm p-6">
             <h2 className="text-2xl font-playfair font-medium text-black mb-6">Order Summary</h2>
-            
+
             <div className="space-y-4 mb-6">
               {cartItems.map((item) => (
                 <div key={item.id} className="flex items-center justify-between py-2 border-b border-beige-100">
                   <div>
                     <h4 className="font-medium text-black">{item.name}</h4>
-                    {item.selectedVariation && (
-                      <p className="text-sm text-gray-600">Size: {item.selectedVariation.name}</p>
+                    {item.selectedVariations && item.selectedVariations.length > 0 && (
+                      <p className="text-sm text-gray-600">
+                        {item.selectedVariations.map(v => `${v.type}: ${v.name}`).join(' · ')}
+                      </p>
                     )}
                     {item.selectedServingPreference && (
                       <p className="text-sm text-gray-600">Serving: {item.selectedServingPreference.name}</p>
@@ -127,7 +129,7 @@ Please confirm this order to proceed. Thank you for choosing Beracah Cafe! ☕
                 </div>
               ))}
             </div>
-            
+
             <div className="border-t border-beige-200 pt-4">
               <div className="flex items-center justify-between text-2xl font-playfair font-semibold text-black">
                 <span>Total:</span>
@@ -139,7 +141,7 @@ Please confirm this order to proceed. Thank you for choosing Beracah Cafe! ☕
           {/* Customer Details Form */}
           <div className="bg-white rounded-xl shadow-sm p-6">
             <h2 className="text-2xl font-playfair font-medium text-black mb-6">Customer Information</h2>
-            
+
             <form className="space-y-6">
               {/* Customer Information */}
               <div>
@@ -183,11 +185,10 @@ Please confirm this order to proceed. Thank you for choosing Beracah Cafe! ☕
                       key={option.value}
                       type="button"
                       onClick={() => setServiceType(option.value as ServiceType)}
-                      className={`p-4 rounded-lg border-2 transition-all duration-200 ${
-                        serviceType === option.value
-                          ? 'border-black bg-black text-white'
-                          : 'border-beige-300 bg-white text-gray-700 hover:border-beige-400'
-                      }`}
+                      className={`p-4 rounded-lg border-2 transition-all duration-200 ${serviceType === option.value
+                        ? 'border-black bg-black text-white'
+                        : 'border-beige-300 bg-white text-gray-700 hover:border-beige-400'
+                        }`}
                     >
                       <div className="text-2xl mb-1">{option.icon}</div>
                       <div className="text-sm font-medium">{option.label}</div>
@@ -212,18 +213,17 @@ Please confirm this order to proceed. Thank you for choosing Beracah Cafe! ☕
                           key={option.value}
                           type="button"
                           onClick={() => setPickupTime(option.value)}
-                          className={`p-3 rounded-lg border-2 transition-all duration-200 text-sm ${
-                            pickupTime === option.value
-                              ? 'border-black bg-black text-white'
-                              : 'border-beige-300 bg-white text-gray-700 hover:border-beige-400'
-                          }`}
+                          className={`p-3 rounded-lg border-2 transition-all duration-200 text-sm ${pickupTime === option.value
+                            ? 'border-black bg-black text-white'
+                            : 'border-beige-300 bg-white text-gray-700 hover:border-beige-400'
+                            }`}
                         >
                           <Clock className="h-4 w-4 mx-auto mb-1" />
                           {option.label}
                         </button>
                       ))}
                     </div>
-                    
+
                     {pickupTime === 'custom' && (
                       <input
                         type="text"
@@ -268,11 +268,10 @@ Please confirm this order to proceed. Thank you for choosing Beracah Cafe! ☕
               <button
                 onClick={handleProceedToPayment}
                 disabled={!isDetailsValid}
-                className={`w-full py-4 rounded-xl font-medium text-lg transition-all duration-200 transform ${
-                  isDetailsValid
-                    ? 'bg-black text-white hover:bg-gray-800 hover:scale-[1.02]'
-                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                }`}
+                className={`w-full py-4 rounded-xl font-medium text-lg transition-all duration-200 transform ${isDetailsValid
+                  ? 'bg-black text-white hover:bg-gray-800 hover:scale-[1.02]'
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  }`}
               >
                 Proceed to Payment
               </button>
@@ -301,23 +300,22 @@ Please confirm this order to proceed. Thank you for choosing Beracah Cafe! ☕
         {/* Payment Method Selection */}
         <div className="bg-white rounded-xl shadow-sm p-6">
           <h2 className="text-2xl font-playfair font-medium text-black mb-6">Choose Payment Method</h2>
-          
+
           <div className="grid grid-cols-1 gap-4 mb-6">
             {[
-        { value: 'cash', label: 'Cash', icon: '💰' },
+              { value: 'cash', label: 'Cash', icon: '💰' },
               { value: 'gcash', label: 'GCash', icon: '💳' },
-            
+
               { value: 'cards', label: 'Credit/Debit Cards', icon: '💳' }
             ].map((option) => (
               <button
                 key={option.value}
                 type="button"
                 onClick={() => setPaymentMethod(option.value as PaymentMethod)}
-                className={`p-4 rounded-lg border-2 transition-all duration-200 flex items-center space-x-3 ${
-                  paymentMethod === option.value
-                    ? 'border-black bg-black text-white'
-                    : 'border-beige-300 bg-white text-gray-700 hover:border-beige-400'
-                }`}
+                className={`p-4 rounded-lg border-2 transition-all duration-200 flex items-center space-x-3 ${paymentMethod === option.value
+                  ? 'border-black bg-black text-white'
+                  : 'border-beige-300 bg-white text-gray-700 hover:border-beige-400'
+                  }`}
               >
                 <span className="text-2xl">{option.icon}</span>
                 <span className="font-medium">{option.label}</span>
@@ -338,7 +336,7 @@ Please confirm this order to proceed. Thank you for choosing Beracah Cafe! ☕
         {/* Order Summary */}
         <div className="bg-white rounded-xl shadow-sm p-6">
           <h2 className="text-2xl font-playfair font-medium text-black mb-6">Final Order Summary</h2>
-          
+
           <div className="space-y-4 mb-6">
             <div className="bg-beige-50 rounded-lg p-4">
               <h4 className="font-medium text-black mb-2">Customer Details</h4>
@@ -357,8 +355,10 @@ Please confirm this order to proceed. Thank you for choosing Beracah Cafe! ☕
               <div key={item.id} className="flex items-center justify-between py-2 border-b border-beige-100">
                 <div>
                   <h4 className="font-medium text-black">{item.name}</h4>
-                  {item.selectedVariation && (
-                    <p className="text-sm text-gray-600">Size: {item.selectedVariation.name}</p>
+                  {item.selectedVariations && item.selectedVariations.length > 0 && (
+                    <p className="text-sm text-gray-600">
+                      {item.selectedVariations.map(v => `${v.type}: ${v.name}`).join(' · ')}
+                    </p>
                   )}
                   {item.selectedAddOns && item.selectedAddOns.length > 0 && (
                     <p className="text-sm text-gray-600">
@@ -371,7 +371,7 @@ Please confirm this order to proceed. Thank you for choosing Beracah Cafe! ☕
               </div>
             ))}
           </div>
-          
+
           <div className="border-t border-beige-200 pt-4 mb-6">
             <div className="flex items-center justify-between text-2xl font-playfair font-semibold text-black">
               <span>Total:</span>
@@ -385,7 +385,7 @@ Please confirm this order to proceed. Thank you for choosing Beracah Cafe! ☕
           >
             Place Order via Messenger
           </button>
-          
+
           <p className="text-xs text-gray-500 text-center mt-3">
             You'll be redirected to Facebook Messenger to confirm your order
           </p>

@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { ChevronLeft, Share2, Minus, Plus, Star } from 'lucide-react';
 import { MenuItem, Variation, AddOn, ServingPreferenceOption } from '../types';
 import { useCategories } from '../hooks/useCategories';
+
+import BestPairUpsell from './BestPairUpsell';
 
 interface ProductDetailModalProps {
     item: MenuItem;
@@ -10,7 +12,7 @@ interface ProductDetailModalProps {
     onAddToCart: (
         item: MenuItem,
         quantity: number,
-        variation?: Variation,
+        variations?: Variation[],
         servingPreference?: ServingPreferenceOption,
         addOns?: AddOn[]
     ) => void;
@@ -24,20 +26,49 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
 }) => {
     const { categories } = useCategories();
     const [quantity, setQuantity] = useState(1);
-    const [selectedVariation, setSelectedVariation] = useState<Variation | undefined>(
-        item.variations?.[0]
-    );
     const [selectedServingPreference, setSelectedServingPreference] = useState<ServingPreferenceOption | undefined>(
         item.servingPreferences?.[0]
     );
     const [selectedAddOns, setSelectedAddOns] = useState<AddOn[]>([]);
     const categoryName = categories.find(c => c.id === item.category)?.name || 'Menu';
 
+    // Group variations by type
+    const groupedVariations = useMemo(() => {
+        if (!item.variations || item.variations.length === 0) return {};
+        return item.variations.reduce((groups, variation) => {
+            const type = variation.type || 'Size';
+            if (!groups[type]) {
+                groups[type] = [];
+            }
+            groups[type].push(variation);
+            return groups;
+        }, {} as Record<string, Variation[]>);
+    }, [item.variations]);
+
+    // Track one selected variation per type
+    const [selectedVariations, setSelectedVariations] = useState<Record<string, Variation>>(() => {
+        const defaults: Record<string, Variation> = {};
+        Object.entries(groupedVariations).forEach(([type, vars]) => {
+            if (vars.length > 0) defaults[type] = vars[0];
+        });
+        return defaults;
+    });
+
     // Reset state when item changes or modal opens
     useEffect(() => {
         if (isOpen) {
             setQuantity(1);
-            setSelectedVariation(item.variations?.[0]);
+            const defaults: Record<string, Variation> = {};
+            const groups = item.variations?.reduce((g, v) => {
+                const t = v.type || 'Size';
+                if (!g[t]) g[t] = [];
+                g[t].push(v);
+                return g;
+            }, {} as Record<string, Variation[]>) || {};
+            Object.entries(groups).forEach(([type, vars]) => {
+                if (vars.length > 0) defaults[type] = vars[0];
+            });
+            setSelectedVariations(defaults);
             setSelectedServingPreference(item.servingPreferences?.[0]);
             setSelectedAddOns([]);
         }
@@ -45,9 +76,9 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
 
     const calculatePrice = () => {
         let price = item.basePrice;
-        if (selectedVariation) {
-            price = item.basePrice + selectedVariation.price;
-        }
+        Object.values(selectedVariations).forEach(v => {
+            price += v.price;
+        });
         if (selectedServingPreference) {
             price += selectedServingPreference.price;
         }
@@ -58,17 +89,13 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
     };
 
     const handleAddToCart = () => {
-        onAddToCart(item, quantity, selectedVariation, selectedServingPreference, selectedAddOns);
+        const variationsArray = Object.values(selectedVariations);
+        onAddToCart(item, quantity, variationsArray.length > 0 ? variationsArray : undefined, selectedServingPreference, selectedAddOns);
         onClose();
     };
 
     const handleBuyNow = () => {
         handleAddToCart();
-        // Assuming there is a way to navigate to checkout or open cart drawer from parent, 
-        // but for now, we'll just add to cart and close, or the parent can handle navigation if needed.
-        // Ideally, onAddToCart could return a promise or we could have a separate onBuyNow prop.
-        // For this implementation, "Buy Now" effectively does the same as "Add to Cart" but implies immediate action.
-        // We can emit the event and let the parent handle the flow.
     };
 
     const toggleAddOn = (addOn: AddOn) => {
@@ -161,20 +188,20 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
 
                         {/* Variations / Options */}
                         <div className="space-y-8">
-                            {/* Size / Variation Selection */}
-                            {item.variations && item.variations.length > 0 && (
-                                <div>
+                            {/* Variation Groups (Size, Flavor, etc.) */}
+                            {Object.entries(groupedVariations).map(([type, variations]) => (
+                                <div key={type}>
                                     <div className="flex items-center justify-between mb-4">
-                                        <h3 className="text-lg font-bold text-gray-900">Size</h3>
+                                        <h3 className="text-lg font-bold text-gray-900">{type}</h3>
                                         <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">Pick 1</span>
                                     </div>
                                     <div className="flex flex-wrap gap-3">
-                                        {item.variations.map((variation) => {
-                                            const isSelected = selectedVariation?.id === variation.id;
+                                        {variations.map((variation) => {
+                                            const isSelected = selectedVariations[type]?.id === variation.id;
                                             return (
                                                 <button
                                                     key={variation.id}
-                                                    onClick={() => setSelectedVariation(variation)}
+                                                    onClick={() => setSelectedVariations(prev => ({ ...prev, [type]: variation }))}
                                                     className={`
                                         flex-1 min-w-[100px] py-3 px-4 rounded-xl border-2 transition-all duration-200
                                         flex flex-col items-center justify-center
@@ -185,13 +212,15 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                                     `}
                                                 >
                                                     <span className={`text-sm font-semibold ${isSelected ? 'text-white' : 'text-gray-900'}`}>{variation.name}</span>
-                                                    {/* Optional: Show price difference if logic requires, but design often simplifies this */}
+                                                    {variation.price > 0 && (
+                                                        <span className={`text-xs mt-0.5 ${isSelected ? 'text-gray-300' : 'text-gray-500'}`}>+₱{variation.price.toFixed(2)}</span>
+                                                    )}
                                                 </button>
                                             );
                                         })}
                                     </div>
                                 </div>
-                            )}
+                            ))}
 
                             {/* Serving Preference */}
                             {item.servingPreferences && item.servingPreferences.length > 0 && (
@@ -273,6 +302,12 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                                 </div>
                             )}
                         </div>
+
+                        {/* Best Pair Upsell */}
+                        <BestPairUpsell
+                            currentItemId={item.id}
+                            onAddToCart={onAddToCart}
+                        />
                     </div>
                 </div>
 

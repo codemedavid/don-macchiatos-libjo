@@ -16,20 +16,34 @@ export const useCategories = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchCategories = async () => {
+  const fetchCategories = async (retries = 3) => {
     try {
       setLoading(true);
-      
-      const { data, error: fetchError } = await supabase
-        .from('categories')
-        .select('*')
-        .eq('active', true)
-        .order('sort_order', { ascending: true });
 
-      if (fetchError) throw fetchError;
+      let lastError: unknown = null;
+      for (let attempt = 0; attempt < retries; attempt++) {
+        try {
+          const { data, error: fetchError } = await supabase
+            .from('categories')
+            .select('*')
+            .eq('active', true)
+            .order('sort_order', { ascending: true });
 
-      setCategories(data || []);
-      setError(null);
+          if (fetchError) throw fetchError;
+
+          setCategories(data || []);
+          setError(null);
+          return;
+        } catch (err) {
+          lastError = err;
+          if (attempt < retries - 1) {
+            // Exponential backoff: 500ms, 1000ms, ...
+            await new Promise(r => setTimeout(r, 500 * Math.pow(2, attempt)));
+          }
+        }
+      }
+
+      throw lastError;
     } catch (err) {
       console.error('Error fetching categories:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch categories');

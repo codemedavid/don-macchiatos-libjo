@@ -8,7 +8,7 @@ interface MenuItemCardProps {
   onAddToCart: (
     item: MenuItem,
     quantity?: number,
-    variation?: Variation,
+    variations?: Variation[],
     servingPreference?: ServingPreferenceOption,
     addOns?: AddOn[]
   ) => void;
@@ -62,7 +62,6 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
               className="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-110"
               loading="eager"
               decoding="sync"
-              fetchPriority="high"
               onError={(e) => {
                 e.currentTarget.style.display = 'none';
                 e.currentTarget.nextElementSibling?.classList.remove('hidden');

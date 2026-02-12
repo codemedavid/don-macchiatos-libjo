@@ -85,6 +85,7 @@ export type Database = {
           menu_item_id: string;
           name: string;
           price: number;
+          type: string;
           created_at: string;
         };
         Insert: {
@@ -92,6 +93,7 @@ export type Database = {
           menu_item_id: string;
           name: string;
           price: number;
+          type?: string;
           created_at?: string;
         };
         Update: {
@@ -99,6 +101,7 @@ export type Database = {
           menu_item_id?: string;
           name?: string;
           price?: number;
+          type?: string;
           created_at?: string;
         };
       };
@@ -191,6 +194,59 @@ export type Database = {
           sort_order?: number;
           start_date?: string | null;
           end_date?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      upsells: {
+        Row: {
+          id: string;
+          type: string;
+          name: string;
+          description: string;
+          trigger_item_ids: string[];
+          offer_item_ids: string[];
+          discount_type: string;
+          discount_value: number;
+          active: boolean;
+          sort_order: number;
+          image_url: string | null;
+          skip_label: string;
+          accept_label: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          type: string;
+          name: string;
+          description?: string;
+          trigger_item_ids?: string[];
+          offer_item_ids?: string[];
+          discount_type?: string;
+          discount_value?: number;
+          active?: boolean;
+          sort_order?: number;
+          image_url?: string | null;
+          skip_label?: string;
+          accept_label?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          type?: string;
+          name?: string;
+          description?: string;
+          trigger_item_ids?: string[];
+          offer_item_ids?: string[];
+          discount_type?: string;
+          discount_value?: number;
+          active?: boolean;
+          sort_order?: number;
+          image_url?: string | null;
+          skip_label?: string;
+          accept_label?: string;
           created_at?: string;
           updated_at?: string;
         };

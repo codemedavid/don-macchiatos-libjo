@@ -64,8 +64,10 @@ const Cart: React.FC<CartProps> = ({
             <div className="flex items-center justify-between">
               <div className="flex-1">
                 <h3 className="text-lg font-playfair font-medium text-black mb-1">{item.name}</h3>
-                {item.selectedVariation && (
-                  <p className="text-sm text-gray-500 mb-1">Size: {item.selectedVariation.name}</p>
+                {item.selectedVariations && item.selectedVariations.length > 0 && (
+                  <p className="text-sm text-gray-500 mb-1">
+                    {item.selectedVariations.map(v => `${v.type}: ${v.name}`).join(' · ')}
+                  </p>
                 )}
                 {item.selectedServingPreference && (
                   <p className="text-sm text-gray-500 mb-1">
@@ -79,7 +81,7 @@ const Cart: React.FC<CartProps> = ({
                 )}
                 <p className="text-lg font-semibold text-black">₱{item.totalPrice} each</p>
               </div>
-              
+
               <div className="flex items-center space-x-4 ml-4">
                 <div className="flex items-center space-x-3 bg-beige-100 rounded-full p-1">
                   <button
@@ -96,11 +98,11 @@ const Cart: React.FC<CartProps> = ({
                     <Plus className="h-4 w-4" />
                   </button>
                 </div>
-                
+
                 <div className="text-right">
                   <p className="text-lg font-semibold text-black">₱{item.totalPrice * item.quantity}</p>
                 </div>
-                
+
                 <button
                   onClick={() => removeFromCart(item.id)}
                   className="p-2 text-red-500 hover:text-red-600 hover:bg-red-50 rounded-full transition-all duration-200"
@@ -118,7 +120,7 @@ const Cart: React.FC<CartProps> = ({
           <span>Total:</span>
           <span>₱{parseFloat(getTotalPrice() || 0).toFixed(2)}</span>
         </div>
-        
+
         <button
           onClick={onCheckout}
           className="w-full bg-black text-white py-4 rounded-xl hover:bg-gray-800 transition-all duration-200 transform hover:scale-[1.02] font-medium text-lg"
