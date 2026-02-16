@@ -12,6 +12,7 @@ import AdminDashboard from './components/AdminDashboard';
 import BannerCarousel from './components/BannerCarousel';
 import UpgradeMealUpsell from './components/UpgradeMealUpsell';
 import BeforeYouGoUpsell from './components/BeforeYouGoUpsell';
+import ProductDetailModal from './components/ProductDetailModal';
 import { useBanners } from './hooks/useBanners';
 import { useMenu } from './hooks/useMenu';
 import { useUpsells } from './hooks/useUpsells';
@@ -26,6 +27,10 @@ function MainApp() {
   const [upsellFlow, setUpsellFlow] = React.useState<'none' | 'upgrade_meal' | 'before_you_go'>('none');
   const [showAddToCartUpsell, setShowAddToCartUpsell] = React.useState(false);
   const [upsellTriggerItem, setUpsellTriggerItem] = React.useState<MenuItem | null>(null);
+
+  // State for upsell customization modal
+  const [customizeItem, setCustomizeItem] = React.useState<MenuItem | null>(null);
+  const [customizeDiscountedPrice, setCustomizeDiscountedPrice] = React.useState<number | undefined>(undefined);
 
   // Filter active banners
   const activeBanners = banners.filter(banner => {
@@ -93,6 +98,20 @@ function MainApp() {
     setActiveCategory(categoryId);
   };
 
+  // Handler for when an upsell item needs customization (has variations/add-ons)
+  const handleUpsellCustomize = React.useCallback(
+    (item: MenuItem, discountedBasePrice?: number) => {
+      setCustomizeItem(item);
+      setCustomizeDiscountedPrice(discountedBasePrice);
+    },
+    []
+  );
+
+  const handleCustomizeClose = React.useCallback(() => {
+    setCustomizeItem(null);
+    setCustomizeDiscountedPrice(undefined);
+  }, []);
+
   return (
     <div className="min-h-screen bg-beige-50 font-inter">
       <Header
@@ -115,6 +134,7 @@ function MainApp() {
             updateQuantity={cart.updateQuantity}
             activeCategory={activeCategory}
             onCategoryChange={handleCategoryChange}
+            onCustomize={handleUpsellCustomize}
           />
         </>
       )}
@@ -154,6 +174,7 @@ function MainApp() {
           menuItems={menuItems}
           upsells={upsells}
           onAddToCart={cart.addToCart}
+          onCustomize={handleUpsellCustomize}
           onDismiss={() => {
             setShowAddToCartUpsell(false);
             setUpsellTriggerItem(null);
@@ -168,6 +189,7 @@ function MainApp() {
           menuItems={menuItems}
           upsells={upsells}
           onAddToCart={cart.addToCart}
+          onCustomize={handleUpsellCustomize}
           onDismiss={handleUpgradeDismiss}
         />
       )}
@@ -178,7 +200,20 @@ function MainApp() {
           menuItems={menuItems}
           upsells={upsells}
           onAddToCart={cart.addToCart}
+          onCustomize={handleUpsellCustomize}
           onDismiss={handleBeforeYouGoDismiss}
+        />
+      )}
+
+      {/* Customization modal for upsell items with variations/add-ons */}
+      {customizeItem && (
+        <ProductDetailModal
+          item={customizeItem}
+          isOpen={true}
+          onClose={handleCustomizeClose}
+          onAddToCart={handleAddToCart}
+          discountedBasePrice={customizeDiscountedPrice}
+          onCustomize={handleUpsellCustomize}
         />
       )}
     </div>

@@ -14,6 +14,7 @@ interface UpgradeMealUpsellProps {
         servingPreference?: ServingPreferenceOption,
         addOns?: AddOn[]
     ) => void;
+    onCustomize: (item: MenuItem, discountedBasePrice?: number) => void;
     onDismiss: () => void;
 }
 
@@ -23,6 +24,7 @@ const UpgradeMealUpsell: React.FC<UpgradeMealUpsellProps> = ({
     menuItems,
     upsells,
     onAddToCart,
+    onCustomize,
     onDismiss,
 }) => {
     const [selectedChoice, setSelectedChoice] = useState<'none' | 'ala_carte' | 'upgrade'>('none');
@@ -91,7 +93,20 @@ const UpgradeMealUpsell: React.FC<UpgradeMealUpsellProps> = ({
 
     const handleUpgrade = () => {
         setSelectedChoice('upgrade');
-        offerItems.forEach(item => onAddToCart(item, 1));
+        offerItems.forEach(item => {
+            const perItemPrice = relevantUpsell && offerItems.length > 0
+                ? upgradeExtraPrice / offerItems.length
+                : item.basePrice;
+            const needsCustomization = (item.variations && item.variations.length > 0) ||
+                (item.servingPreferences && item.servingPreferences.length > 0) ||
+                (item.addOns && item.addOns.length > 0);
+
+            if (needsCustomization) {
+                onCustomize(item, perItemPrice);
+            } else {
+                onAddToCart({ ...item, basePrice: perItemPrice }, 1);
+            }
+        });
         setTimeout(() => onDismiss(), 250);
     };
 

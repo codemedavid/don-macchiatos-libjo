@@ -13,6 +13,7 @@ interface BeforeYouGoUpsellProps {
         servingPreference?: ServingPreferenceOption,
         addOns?: AddOn[]
     ) => void;
+    onCustomize: (item: MenuItem, discountedBasePrice?: number) => void;
     onDismiss: () => void;
 }
 
@@ -21,6 +22,7 @@ const BeforeYouGoUpsell: React.FC<BeforeYouGoUpsellProps> = ({
     menuItems,
     upsells,
     onAddToCart,
+    onCustomize,
     onDismiss,
 }) => {
     const [addedItems, setAddedItems] = useState<Set<string>>(new Set());
@@ -75,7 +77,19 @@ const BeforeYouGoUpsell: React.FC<BeforeYouGoUpsellProps> = ({
 
     const handleAdd = (item: MenuItem) => {
         if (addedItems.has(item.id)) return;
-        onAddToCart(item, 1);
+        const discountedPrice = getDiscountedPrice(item);
+        const needsCustomization = (item.variations && item.variations.length > 0) ||
+            (item.servingPreferences && item.servingPreferences.length > 0) ||
+            (item.addOns && item.addOns.length > 0);
+
+        if (needsCustomization) {
+            onCustomize(item, discountedPrice ?? undefined);
+        } else {
+            const itemToAdd = discountedPrice !== null
+                ? { ...item, basePrice: discountedPrice }
+                : item;
+            onAddToCart(itemToAdd, 1);
+        }
         setAddedItems(prev => new Set(prev).add(item.id));
     };
 

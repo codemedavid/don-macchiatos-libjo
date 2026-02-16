@@ -13,9 +13,10 @@ interface BestPairUpsellProps {
         servingPreference?: ServingPreferenceOption,
         addOns?: AddOn[]
     ) => void;
+    onCustomize: (item: MenuItem, discountedBasePrice?: number) => void;
 }
 
-const BestPairUpsell: React.FC<BestPairUpsellProps> = ({ currentItemId, onAddToCart }) => {
+const BestPairUpsell: React.FC<BestPairUpsellProps> = ({ currentItemId, onAddToCart, onCustomize }) => {
     const { getUpsellsForItem, resolveOfferItems } = useUpsells();
     const { menuItems } = useMenu();
 
@@ -104,7 +105,19 @@ const BestPairUpsell: React.FC<BestPairUpsellProps> = ({ currentItemId, onAddToC
                                 <button
                                     onClick={(e) => {
                                         e.stopPropagation();
-                                        onAddToCart(item, 1);
+                                        const needsCustomization = (item.variations && item.variations.length > 0) ||
+                                            (item.servingPreferences && item.servingPreferences.length > 0) ||
+                                            (item.addOns && item.addOns.length > 0);
+
+                                        if (needsCustomization) {
+                                            onCustomize(item, discountedPrice ?? undefined);
+                                        } else {
+                                            // Apply discount even for direct add (fix: was missing before)
+                                            const itemToAdd = discountedPrice !== null
+                                                ? { ...item, basePrice: discountedPrice }
+                                                : item;
+                                            onAddToCart(itemToAdd, 1);
+                                        }
                                     }}
                                     className="w-full flex items-center justify-center gap-1 bg-black text-white py-1.5 rounded-lg text-xs font-medium hover:bg-gray-800 transition-colors"
                                 >

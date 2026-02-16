@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { ChevronLeft, Share2, Minus, Plus, Star } from 'lucide-react';
+import { ChevronLeft, Share2, Minus, Plus } from 'lucide-react';
 import { MenuItem, Variation, AddOn, ServingPreferenceOption } from '../types';
 import { useCategories } from '../hooks/useCategories';
 
@@ -16,13 +16,19 @@ interface ProductDetailModalProps {
         servingPreference?: ServingPreferenceOption,
         addOns?: AddOn[]
     ) => void;
+    /** When provided, use this as the base price instead of item.basePrice (for upsell discounts) */
+    discountedBasePrice?: number;
+    /** Callback for when a best-pair upsell item needs customization */
+    onCustomize?: (item: MenuItem, discountedBasePrice?: number) => void;
 }
 
 const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
     item,
     isOpen,
     onClose,
-    onAddToCart
+    onAddToCart,
+    discountedBasePrice,
+    onCustomize
 }) => {
     const { categories } = useCategories();
     const [quantity, setQuantity] = useState(1);
@@ -74,7 +80,24 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
         }
     }, [isOpen, item]);
 
+    const effectiveBasePrice = discountedBasePrice !== undefined ? discountedBasePrice : item.basePrice;
+    const hasDiscount = discountedBasePrice !== undefined && discountedBasePrice < item.basePrice;
+
     const calculatePrice = () => {
+        let price = effectiveBasePrice;
+        Object.values(selectedVariations).forEach(v => {
+            price += v.price;
+        });
+        if (selectedServingPreference) {
+            price += selectedServingPreference.price;
+        }
+        selectedAddOns.forEach(addOn => {
+            price += addOn.price;
+        });
+        return price * quantity;
+    };
+
+    const calculateOriginalPrice = () => {
         let price = item.basePrice;
         Object.values(selectedVariations).forEach(v => {
             price += v.price;
@@ -90,7 +113,9 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
 
     const handleAddToCart = () => {
         const variationsArray = Object.values(selectedVariations);
-        onAddToCart(item, quantity, variationsArray.length > 0 ? variationsArray : undefined, selectedServingPreference, selectedAddOns);
+        // If we have a discounted base price, pass the item with the adjusted basePrice
+        const itemToAdd = hasDiscount ? { ...item, basePrice: effectiveBasePrice } : item;
+        onAddToCart(itemToAdd, quantity, variationsArray.length > 0 ? variationsArray : undefined, selectedServingPreference, selectedAddOns);
         onClose();
     };
 
@@ -307,6 +332,7 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                         <BestPairUpsell
                             currentItemId={item.id}
                             onAddToCart={onAddToCart}
+                            onCustomize={onCustomize || (() => { })}
                         />
                     </div>
                 </div>
@@ -318,8 +344,15 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                         {/* Price and Quantity Row */}
                         <div className="flex items-center justify-between mb-2">
                             <div className="flex flex-col">
-                                <span className="text-2xl font-bold text-gray-900">₱{calculatePrice().toFixed(2)}</span>
-                                <span className="text-xs text-gray-500 font-medium">Total Price</span>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-2xl font-bold text-gray-900">₱{calculatePrice().toFixed(2)}</span>
+                                    {hasDiscount && (
+                                        <span className="text-base text-gray-400 line-through">₱{calculateOriginalPrice().toFixed(2)}</span>
+                                    )}
+                                </div>
+                                <span className="text-xs text-gray-500 font-medium">
+                                    {hasDiscount ? 'Discounted Price' : 'Total Price'}
+                                </span>
                             </div>
 
                             {/* Quantity Stepper */}

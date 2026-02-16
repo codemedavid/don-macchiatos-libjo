@@ -18,6 +18,7 @@ interface MenuProps {
   updateQuantity: (id: string, quantity: number) => void;
   activeCategory?: string;
   onCategoryChange?: (categoryId: string) => void;
+  onCustomize?: (item: MenuItem, discountedBasePrice?: number) => void;
 }
 
 const Menu: React.FC<MenuProps> = ({
@@ -26,7 +27,8 @@ const Menu: React.FC<MenuProps> = ({
   cartItems,
   updateQuantity,
   activeCategory: propActiveCategory,
-  onCategoryChange
+  onCategoryChange,
+  onCustomize
 }) => {
   const { categories } = useCategories();
   const [localActiveCategory, setLocalActiveCategory] = React.useState('hot-coffee');
@@ -155,6 +157,7 @@ const Menu: React.FC<MenuProps> = ({
                       onAddToCart={addToCart}
                       quantity={cartItem?.quantity || 0}
                       onUpdateQuantity={updateQuantity}
+                      onCustomize={onCustomize}
                     />
                   );
                 })}

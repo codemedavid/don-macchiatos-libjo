@@ -14,13 +14,15 @@ interface MenuItemCardProps {
   ) => void;
   quantity: number;
   onUpdateQuantity: (id: string, quantity: number) => void;
+  onCustomize?: (item: MenuItem, discountedBasePrice?: number) => void;
 }
 
 const MenuItemCard: React.FC<MenuItemCardProps> = ({
   item,
   onAddToCart,
   quantity,
-  onUpdateQuantity
+  onUpdateQuantity,
+  onCustomize
 }) => {
   const [showCustomization, setShowCustomization] = useState(false);
 
@@ -132,6 +134,7 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
         isOpen={showCustomization}
         onClose={() => setShowCustomization(false)}
         onAddToCart={onAddToCart}
+        onCustomize={onCustomize}
       />
     </>
   );
