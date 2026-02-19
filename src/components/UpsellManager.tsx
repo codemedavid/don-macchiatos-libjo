@@ -3,6 +3,7 @@ import { ArrowLeft, Plus, Edit, Trash2, Save, X, Search, Check, ChevronDown } fr
 import { Upsell, UpsellType, MenuItem } from '../types';
 import { useUpsells } from '../hooks/useUpsells';
 import { useMenu } from '../hooks/useMenu';
+import { useBundles } from '../hooks/useBundles';
 import ImageUpload from './ImageUpload';
 
 interface UpsellManagerProps {
@@ -153,6 +154,7 @@ const MenuItemMultiSelect: React.FC<{
 const UpsellManager: React.FC<UpsellManagerProps> = ({ onBack }) => {
     const { upsells, loading, addUpsell, updateUpsell, deleteUpsell } = useUpsells();
     const { menuItems } = useMenu();
+    const { bundles } = useBundles();
     const [activeTab, setActiveTab] = useState<UpsellType>('best_pair');
     const [currentView, setCurrentView] = useState<'list' | 'form'>('list');
     const [editingUpsell, setEditingUpsell] = useState<Upsell | null>(null);
@@ -170,6 +172,7 @@ const UpsellManager: React.FC<UpsellManagerProps> = ({ onBack }) => {
         image_url?: string;
         skip_label: string;
         accept_label: string;
+        bundle_id?: string;
     }>({
         type: 'best_pair',
         name: '',
@@ -183,6 +186,7 @@ const UpsellManager: React.FC<UpsellManagerProps> = ({ onBack }) => {
         image_url: undefined,
         skip_label: 'No, thanks',
         accept_label: 'Add to Order',
+        bundle_id: undefined,
     });
 
     const filteredUpsells = upsells.filter(u => u.type === activeTab);
@@ -202,6 +206,7 @@ const UpsellManager: React.FC<UpsellManagerProps> = ({ onBack }) => {
             image_url: undefined,
             skip_label: 'No, thanks',
             accept_label: 'Add to Order',
+            bundle_id: undefined,
         });
         setCurrentView('form');
     };
@@ -221,6 +226,7 @@ const UpsellManager: React.FC<UpsellManagerProps> = ({ onBack }) => {
             image_url: upsell.image_url,
             skip_label: upsell.skip_label || 'No, thanks',
             accept_label: upsell.accept_label || 'Add to Order',
+            bundle_id: upsell.bundle_id,
         });
         setCurrentView('form');
     };
@@ -419,6 +425,39 @@ const UpsellManager: React.FC<UpsellManagerProps> = ({ onBack }) => {
                                 />
                             </div>
                         </div>
+
+                        {/* Bundle Linking (upgrade_meal only) */}
+                        {formData.type === 'upgrade_meal' && bundles.length > 0 && (
+                            <div className="mb-8">
+                                <label className="block text-sm font-medium text-black mb-2">Link Bundle (Optional)</label>
+                                <select
+                                    value={formData.bundle_id || ''}
+                                    onChange={(e) => {
+                                        const bundleId = e.target.value || undefined;
+                                        const selectedBundle = bundles.find(b => b.id === bundleId);
+                                        setFormData({
+                                            ...formData,
+                                            bundle_id: bundleId,
+                                            // Auto-populate offer items from bundle
+                                            offer_item_ids: selectedBundle
+                                                ? selectedBundle.items.map(bi => bi.menu_item_id)
+                                                : formData.offer_item_ids,
+                                        });
+                                    }}
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
+                                >
+                                    <option value="">No bundle linked</option>
+                                    {bundles.filter(b => b.active).map(bundle => (
+                                        <option key={bundle.id} value={bundle.id}>
+                                            {bundle.name} ({bundle.items.length} items)
+                                        </option>
+                                    ))}
+                                </select>
+                                <p className="text-xs text-gray-500 mt-1">
+                                    When linked, the upgrade will open the bundle customization instead of individual items.
+                                </p>
+                            </div>
+                        )}
 
                         {/* Discount */}
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">

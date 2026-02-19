@@ -45,6 +45,7 @@ export interface CartItem extends MenuItem {
 
 export interface OrderData {
   items: CartItem[];
+  bundleItems?: CartBundleItem[];
   customerName: string;
   contactNumber: string;
   serviceType: 'dine-in' | 'pickup' | 'delivery';
@@ -89,6 +90,43 @@ export interface Upsell {
   image_url?: string;
   skip_label: string;
   accept_label: string;
+  bundle_id?: string;
   created_at: string;
   updated_at: string;
+}
+
+export interface Bundle {
+  id: string;
+  name: string;
+  description: string;
+  image_url?: string;
+  pricing_type: 'fixed' | 'discount';
+  fixed_price: number;
+  discount_type: 'none' | 'fixed' | 'percentage';
+  discount_value: number;
+  active: boolean;
+  show_on_menu: boolean;
+  sort_order: number;
+  items: BundleItem[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BundleItem {
+  id: string;
+  bundle_id: string;
+  menu_item_id: string;
+  sort_order: number;
+  menuItem: MenuItem;
+}
+
+export interface CartBundleItem {
+  id: string;
+  bundleId: string;
+  bundleName: string;
+  bundleImage?: string;
+  quantity: number;
+  items: CartItem[];
+  bundlePrice: number;
+  originalPrice: number;
 }

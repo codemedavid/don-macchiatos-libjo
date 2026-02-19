@@ -9,6 +9,7 @@ import CategoryManager from './CategoryManager';
 import BannerManager from './BannerManager';
 import ReorderManager from './ReorderManager';
 import UpsellManager from './UpsellManager';
+import BundleManager from './BundleManager';
 
 
 const AdminDashboard: React.FC = () => {
@@ -19,7 +20,7 @@ const AdminDashboard: React.FC = () => {
   const [loginError, setLoginError] = useState('');
   const { menuItems, loading, addMenuItem, updateMenuItem, deleteMenuItem, reorderMenuItems } = useMenu();
   const { categories } = useCategories();
-  const [currentView, setCurrentView] = useState<'dashboard' | 'items' | 'add' | 'edit' | 'categories' | 'banners' | 'reorder' | 'upsells'>('dashboard');
+  const [currentView, setCurrentView] = useState<'dashboard' | 'items' | 'add' | 'edit' | 'categories' | 'banners' | 'reorder' | 'upsells' | 'bundles'>('dashboard');
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
   const [sortBy, setSortBy] = useState<'name' | 'category' | null>(null);
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
@@ -823,6 +824,11 @@ const AdminDashboard: React.FC = () => {
     return <UpsellManager onBack={() => setCurrentView('dashboard')} />;
   }
 
+  // Bundles View
+  if (currentView === 'bundles') {
+    return <BundleManager onBack={() => setCurrentView('dashboard')} />;
+  }
+
   // Dashboard View
   return (
     <div className="min-h-screen bg-gray-50">
@@ -949,6 +955,13 @@ const AdminDashboard: React.FC = () => {
               >
                 <TrendingUp className="h-5 w-5 text-gray-400" />
                 <span className="font-medium text-gray-900">Manage Upsells</span>
+              </button>
+              <button
+                onClick={() => setCurrentView('bundles')}
+                className="w-full flex items-center space-x-3 p-3 text-left hover:bg-gray-50 rounded-lg transition-colors duration-200"
+              >
+                <Package className="h-5 w-5 text-gray-400" />
+                <span className="font-medium text-gray-900">Manage Bundles</span>
               </button>
             </div>
           </div>

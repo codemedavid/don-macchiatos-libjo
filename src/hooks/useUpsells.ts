@@ -31,6 +31,7 @@ export const useUpsells = () => {
                 image_url: row.image_url || undefined,
                 skip_label: row.skip_label || 'No, thanks',
                 accept_label: row.accept_label || 'Add to Order',
+                bundle_id: row.bundle_id || undefined,
                 created_at: row.created_at,
                 updated_at: row.updated_at,
             }));
@@ -63,6 +64,7 @@ export const useUpsells = () => {
                     image_url: upsell.image_url || null,
                     skip_label: upsell.skip_label || 'No, thanks',
                     accept_label: upsell.accept_label || 'Add to Order',
+                    bundle_id: upsell.bundle_id || null,
                 });
 
             if (insertError) throw insertError;
@@ -90,6 +92,7 @@ export const useUpsells = () => {
                     image_url: updates.image_url || null,
                     skip_label: updates.skip_label,
                     accept_label: updates.accept_label,
+                    bundle_id: updates.bundle_id || null,
                 })
                 .eq('id', id);
 

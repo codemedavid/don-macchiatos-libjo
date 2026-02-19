@@ -1,11 +1,14 @@
 import React from 'react';
 import { Trash2, Plus, Minus, ArrowLeft } from 'lucide-react';
-import { CartItem } from '../types';
+import { CartItem, CartBundleItem } from '../types';
 
 interface CartProps {
   cartItems: CartItem[];
+  bundleCartItems: CartBundleItem[];
   updateQuantity: (id: string, quantity: number) => void;
   removeFromCart: (id: string) => void;
+  updateBundleQuantity: (id: string, quantity: number) => void;
+  removeBundleFromCart: (id: string) => void;
   clearCart: () => void;
   getTotalPrice: () => number;
   onContinueShopping: () => void;
@@ -14,14 +17,19 @@ interface CartProps {
 
 const Cart: React.FC<CartProps> = ({
   cartItems,
+  bundleCartItems,
   updateQuantity,
   removeFromCart,
+  updateBundleQuantity,
+  removeBundleFromCart,
   clearCart,
   getTotalPrice,
   onContinueShopping,
   onCheckout
 }) => {
-  if (cartItems.length === 0) {
+  const isEmpty = cartItems.length === 0 && bundleCartItems.length === 0;
+
+  if (isEmpty) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-12">
         <div className="text-center py-16">
@@ -59,8 +67,9 @@ const Cart: React.FC<CartProps> = ({
       </div>
 
       <div className="bg-white rounded-xl shadow-sm overflow-hidden mb-8">
+        {/* Regular Cart Items */}
         {cartItems.map((item, index) => (
-          <div key={item.id} className={`p-6 ${index !== cartItems.length - 1 ? 'border-b border-beige-200' : ''}`}>
+          <div key={item.id} className={`p-6 ${index !== cartItems.length - 1 || bundleCartItems.length > 0 ? 'border-b border-beige-200' : ''}`}>
             <div className="flex items-center justify-between">
               <div className="flex-1">
                 <h3 className="text-lg font-playfair font-medium text-black mb-1">{item.name}</h3>
@@ -105,6 +114,72 @@ const Cart: React.FC<CartProps> = ({
 
                 <button
                   onClick={() => removeFromCart(item.id)}
+                  className="p-2 text-red-500 hover:text-red-600 hover:bg-red-50 rounded-full transition-all duration-200"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+
+        {/* Bundle Cart Items */}
+        {bundleCartItems.map((bundle, index) => (
+          <div key={bundle.id} className={`p-6 ${index !== bundleCartItems.length - 1 ? 'border-b border-beige-200' : ''}`}>
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="px-2 py-0.5 bg-gray-900 text-white text-[10px] font-bold rounded">BUNDLE</span>
+                  <h3 className="text-lg font-playfair font-medium text-black">{bundle.bundleName}</h3>
+                </div>
+                {/* List each item in the bundle */}
+                <div className="ml-2 space-y-1 mb-2">
+                  {bundle.items.map(item => (
+                    <div key={item.id} className="text-sm text-gray-500">
+                      <span className="font-medium text-gray-700">{item.name}</span>
+                      {item.selectedVariations && item.selectedVariations.length > 0 && (
+                        <span> ({item.selectedVariations.map(v => `${v.type}: ${v.name}`).join(', ')})</span>
+                      )}
+                      {item.selectedServingPreference && (
+                        <span> [{item.selectedServingPreference.name}]</span>
+                      )}
+                      {item.selectedAddOns && item.selectedAddOns.length > 0 && (
+                        <span> + {item.selectedAddOns.map(a => a.name).join(', ')}</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <div className="flex items-center gap-2">
+                  <p className="text-lg font-semibold text-black">₱{bundle.bundlePrice} each</p>
+                  {bundle.bundlePrice < bundle.originalPrice && (
+                    <span className="text-sm text-gray-400 line-through">₱{bundle.originalPrice}</span>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex items-center space-x-4 ml-4">
+                <div className="flex items-center space-x-3 bg-beige-100 rounded-full p-1">
+                  <button
+                    onClick={() => updateBundleQuantity(bundle.id, bundle.quantity - 1)}
+                    className="p-2 hover:bg-beige-200 rounded-full transition-colors duration-200"
+                  >
+                    <Minus className="h-4 w-4" />
+                  </button>
+                  <span className="font-semibold text-black min-w-[32px] text-center">{bundle.quantity}</span>
+                  <button
+                    onClick={() => updateBundleQuantity(bundle.id, bundle.quantity + 1)}
+                    className="p-2 hover:bg-beige-200 rounded-full transition-colors duration-200"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </button>
+                </div>
+
+                <div className="text-right">
+                  <p className="text-lg font-semibold text-black">₱{bundle.bundlePrice * bundle.quantity}</p>
+                </div>
+
+                <button
+                  onClick={() => removeBundleFromCart(bundle.id)}
                   className="p-2 text-red-500 hover:text-red-600 hover:bg-red-50 rounded-full transition-all duration-200"
                 >
                   <Trash2 className="h-4 w-4" />

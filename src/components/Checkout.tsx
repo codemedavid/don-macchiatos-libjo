@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import { ArrowLeft, Clock } from 'lucide-react';
-import { CartItem, PaymentMethod, ServiceType } from '../types';
+import { CartItem, CartBundleItem, PaymentMethod, ServiceType } from '../types';
 
 interface CheckoutProps {
   cartItems: CartItem[];
+  bundleCartItems: CartBundleItem[];
   totalPrice: number;
   onBack: () => void;
 }
 
-const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack }) => {
+const Checkout: React.FC<CheckoutProps> = ({ cartItems, bundleCartItems, totalPrice, onBack }) => {
   const [step, setStep] = useState<'details' | 'payment'>('details');
   const [customerName, setCustomerName] = useState('');
   const [contactNumber, setContactNumber] = useState('');
@@ -39,18 +40,8 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack }) =>
       ? (pickupTime === 'custom' ? customTime : `${pickupTime} minutes`)
       : '';
 
-    const orderDetails = `
-🛒 BERACAH CAFE ORDER
-
-${customerName ? `👤 Customer: ${customerName}` : ''}
-${contactNumber ? `📞 Contact: ${contactNumber}` : ''}
-📍 Service: ${serviceType.charAt(0).toUpperCase() + serviceType.slice(1)}
-${serviceType === 'delivery' ? `🏠 Address: ${address}` : ''}
-${serviceType === 'pickup' ? `⏰ Pickup Time: ${timeInfo}` : ''}
-
-
-📋 ORDER DETAILS:
-${cartItems.map(item => {
+    // Build regular items text
+    const regularItemsText = cartItems.map(item => {
       let itemDetails = `• ${item.name}`;
       if (item.selectedVariations && item.selectedVariations.length > 0) {
         itemDetails += ` (${item.selectedVariations.map(v => `${v.type}: ${v.name}`).join(', ')})`;
@@ -63,7 +54,41 @@ ${cartItems.map(item => {
       }
       itemDetails += ` x${item.quantity} - ₱${item.totalPrice * item.quantity}`;
       return itemDetails;
-    }).join('\n')}
+    }).join('\n');
+
+    // Build bundle items text
+    const bundleItemsText = bundleCartItems.map(bundle => {
+      let bundleText = `📦 BUNDLE: ${bundle.bundleName} x${bundle.quantity} - ₱${bundle.bundlePrice * bundle.quantity}`;
+      bundle.items.forEach(item => {
+        let itemLine = `    • ${item.name}`;
+        if (item.selectedVariations && item.selectedVariations.length > 0) {
+          itemLine += ` (${item.selectedVariations.map(v => `${v.type}: ${v.name}`).join(', ')})`;
+        }
+        if (item.selectedServingPreference) {
+          itemLine += ` [${item.selectedServingPreference.name}]`;
+        }
+        if (item.selectedAddOns && item.selectedAddOns.length > 0) {
+          itemLine += ` + ${item.selectedAddOns.map(addOn => addOn.name).join(', ')}`;
+        }
+        bundleText += `\n${itemLine}`;
+      });
+      return bundleText;
+    }).join('\n');
+
+    const allItemsText = [regularItemsText, bundleItemsText].filter(Boolean).join('\n');
+
+    const orderDetails = `
+🛒 BERACAH CAFE ORDER
+
+${customerName ? `👤 Customer: ${customerName}` : ''}
+${contactNumber ? `📞 Contact: ${contactNumber}` : ''}
+📍 Service: ${serviceType.charAt(0).toUpperCase() + serviceType.slice(1)}
+${serviceType === 'delivery' ? `🏠 Address: ${address}` : ''}
+${serviceType === 'pickup' ? `⏰ Pickup Time: ${timeInfo}` : ''}
+
+
+📋 ORDER DETAILS:
+${allItemsText}
 
 💰 TOTAL: ₱${totalPrice}
 
@@ -86,6 +111,66 @@ Please confirm this order to proceed. Thank you for choosing Beracah Cafe! ☕
     (serviceType !== 'delivery' || address) &&
     (serviceType !== 'pickup' || (pickupTime !== 'custom' || customTime));
 
+  // Render order summary items (used in both steps)
+  const renderOrderSummary = () => (
+    <div className="space-y-4 mb-6">
+      {cartItems.map((item) => (
+        <div key={item.id} className="flex items-center justify-between py-2 border-b border-beige-100">
+          <div>
+            <h4 className="font-medium text-black">{item.name}</h4>
+            {item.selectedVariations && item.selectedVariations.length > 0 && (
+              <p className="text-sm text-gray-600">
+                {item.selectedVariations.map(v => `${v.type}: ${v.name}`).join(' · ')}
+              </p>
+            )}
+            {item.selectedServingPreference && (
+              <p className="text-sm text-gray-600">Serving: {item.selectedServingPreference.name}</p>
+            )}
+            {item.selectedAddOns && item.selectedAddOns.length > 0 && (
+              <p className="text-sm text-gray-600">
+                Add-ons: {item.selectedAddOns.map(addOn => addOn.name).join(', ')}
+              </p>
+            )}
+            <p className="text-sm text-gray-600">₱{item.totalPrice} x {item.quantity}</p>
+          </div>
+          <span className="font-semibold text-black">₱{item.totalPrice * item.quantity}</span>
+        </div>
+      ))}
+
+      {/* Bundle Items */}
+      {bundleCartItems.map((bundle) => (
+        <div key={bundle.id} className="py-2 border-b border-beige-100">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="px-1.5 py-0.5 bg-gray-900 text-white text-[9px] font-bold rounded">BUNDLE</span>
+                <h4 className="font-medium text-black">{bundle.bundleName}</h4>
+              </div>
+              <div className="ml-2 mt-1 space-y-0.5">
+                {bundle.items.map(item => (
+                  <p key={item.id} className="text-sm text-gray-600">
+                    • {item.name}
+                    {item.selectedVariations && item.selectedVariations.length > 0 && (
+                      <span> ({item.selectedVariations.map(v => `${v.type}: ${v.name}`).join(', ')})</span>
+                    )}
+                    {item.selectedServingPreference && (
+                      <span> [{item.selectedServingPreference.name}]</span>
+                    )}
+                    {item.selectedAddOns && item.selectedAddOns.length > 0 && (
+                      <span> + {item.selectedAddOns.map(a => a.name).join(', ')}</span>
+                    )}
+                  </p>
+                ))}
+              </div>
+              <p className="text-sm text-gray-600 mt-1">₱{bundle.bundlePrice} x {bundle.quantity}</p>
+            </div>
+            <span className="font-semibold text-black">₱{bundle.bundlePrice * bundle.quantity}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+
   if (step === 'details') {
     return (
       <div className="max-w-4xl mx-auto px-4 py-8">
@@ -104,32 +189,7 @@ Please confirm this order to proceed. Thank you for choosing Beracah Cafe! ☕
           {/* Order Summary */}
           <div className="bg-white rounded-xl shadow-sm p-6">
             <h2 className="text-2xl font-playfair font-medium text-black mb-6">Order Summary</h2>
-
-            <div className="space-y-4 mb-6">
-              {cartItems.map((item) => (
-                <div key={item.id} className="flex items-center justify-between py-2 border-b border-beige-100">
-                  <div>
-                    <h4 className="font-medium text-black">{item.name}</h4>
-                    {item.selectedVariations && item.selectedVariations.length > 0 && (
-                      <p className="text-sm text-gray-600">
-                        {item.selectedVariations.map(v => `${v.type}: ${v.name}`).join(' · ')}
-                      </p>
-                    )}
-                    {item.selectedServingPreference && (
-                      <p className="text-sm text-gray-600">Serving: {item.selectedServingPreference.name}</p>
-                    )}
-                    {item.selectedAddOns && item.selectedAddOns.length > 0 && (
-                      <p className="text-sm text-gray-600">
-                        Add-ons: {item.selectedAddOns.map(addOn => addOn.name).join(', ')}
-                      </p>
-                    )}
-                    <p className="text-sm text-gray-600">₱{item.totalPrice} x {item.quantity}</p>
-                  </div>
-                  <span className="font-semibold text-black">₱{item.totalPrice * item.quantity}</span>
-                </div>
-              ))}
-            </div>
-
+            {renderOrderSummary()}
             <div className="border-t border-beige-200 pt-4">
               <div className="flex items-center justify-between text-2xl font-playfair font-semibold text-black">
                 <span>Total:</span>
@@ -368,6 +428,35 @@ Please confirm this order to proceed. Thank you for choosing Beracah Cafe! ☕
                   <p className="text-sm text-gray-600">₱{item.totalPrice} x {item.quantity}</p>
                 </div>
                 <span className="font-semibold text-black">₱{item.totalPrice * item.quantity}</span>
+              </div>
+            ))}
+
+            {/* Bundle Items in Final Summary */}
+            {bundleCartItems.map((bundle) => (
+              <div key={bundle.id} className="py-2 border-b border-beige-100">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="px-1.5 py-0.5 bg-gray-900 text-white text-[9px] font-bold rounded">BUNDLE</span>
+                      <h4 className="font-medium text-black">{bundle.bundleName}</h4>
+                    </div>
+                    <div className="ml-2 mt-1 space-y-0.5">
+                      {bundle.items.map(item => (
+                        <p key={item.id} className="text-sm text-gray-600">
+                          • {item.name}
+                          {item.selectedVariations && item.selectedVariations.length > 0 && (
+                            <span> ({item.selectedVariations.map(v => `${v.type}: ${v.name}`).join(', ')})</span>
+                          )}
+                          {item.selectedServingPreference && (
+                            <span> [{item.selectedServingPreference.name}]</span>
+                          )}
+                        </p>
+                      ))}
+                    </div>
+                    <p className="text-sm text-gray-600 mt-1">₱{bundle.bundlePrice} x {bundle.quantity}</p>
+                  </div>
+                  <span className="font-semibold text-black">₱{bundle.bundlePrice * bundle.quantity}</span>
+                </div>
               </div>
             ))}
           </div>

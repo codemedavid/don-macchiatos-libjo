@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { X, Check } from 'lucide-react';
-import { MenuItem, CartItem, Upsell, Variation, AddOn, ServingPreferenceOption } from '../types';
+import { MenuItem, CartItem, Upsell, Variation, AddOn, ServingPreferenceOption, Bundle } from '../types';
 
 interface UpgradeMealUpsellProps {
     triggerItem?: MenuItem;
     cartItems: CartItem[];
     menuItems: MenuItem[];
     upsells: Upsell[];
+    bundles?: Bundle[];
     onAddToCart: (
         item: MenuItem,
         quantity?: number,
@@ -15,6 +16,7 @@ interface UpgradeMealUpsellProps {
         addOns?: AddOn[]
     ) => void;
     onCustomize: (item: MenuItem, discountedBasePrice?: number) => void;
+    onOpenBundleCustomization?: (bundle: Bundle) => void;
     onDismiss: () => void;
 }
 
@@ -23,8 +25,10 @@ const UpgradeMealUpsell: React.FC<UpgradeMealUpsellProps> = ({
     cartItems,
     menuItems,
     upsells,
+    bundles = [],
     onAddToCart,
     onCustomize,
+    onOpenBundleCustomization,
     onDismiss,
 }) => {
     const [selectedChoice, setSelectedChoice] = useState<'none' | 'ala_carte' | 'upgrade'>('none');
@@ -91,8 +95,22 @@ const UpgradeMealUpsell: React.FC<UpgradeMealUpsellProps> = ({
         setTimeout(() => onDismiss(), 250);
     };
 
+    // Check if this upsell is linked to a bundle
+    const linkedBundle = useMemo(() => {
+        if (!relevantUpsell?.bundle_id) return null;
+        return bundles.find(b => b.id === relevantUpsell.bundle_id && b.active) || null;
+    }, [relevantUpsell, bundles]);
+
     const handleUpgrade = () => {
         setSelectedChoice('upgrade');
+
+        // If linked to a bundle, open bundle customization instead
+        if (linkedBundle && onOpenBundleCustomization) {
+            onOpenBundleCustomization(linkedBundle);
+            setTimeout(() => onDismiss(), 250);
+            return;
+        }
+
         offerItems.forEach(item => {
             const perItemPrice = relevantUpsell && offerItems.length > 0
                 ? upgradeExtraPrice / offerItems.length
