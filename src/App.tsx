@@ -30,6 +30,13 @@ function MainApp() {
   const [upsellFlow, setUpsellFlow] = React.useState<'none' | 'upgrade_meal' | 'before_you_go'>('none');
   const [showAddToCartUpsell, setShowAddToCartUpsell] = React.useState(false);
   const [upsellTriggerItem, setUpsellTriggerItem] = React.useState<MenuItem | null>(null);
+  const [pendingUpsellAdd, setPendingUpsellAdd] = React.useState<{
+    item: MenuItem;
+    quantity: number;
+    variations?: Variation[];
+    servingPreference?: ServingPreferenceOption;
+    addOns?: AddOn[];
+  } | null>(null);
 
   // State for upsell customization modal
   const [customizeItem, setCustomizeItem] = React.useState<MenuItem | null>(null);
@@ -53,24 +60,49 @@ function MainApp() {
     [bundles]
   );
 
-  // Wrapped addToCart that checks for upgrade_meal upsells after adding an item
+  // Wrapped addToCart that intercepts upgrade_meal items before cart insertion
   const handleAddToCart = React.useCallback(
     (item: MenuItem, quantity?: number, variations?: Variation[], servingPreference?: ServingPreferenceOption, addOns?: AddOn[]) => {
-      // Add the item to cart first
-      cart.addToCart(item, quantity, variations, servingPreference, addOns);
-
-      // Check if this item triggers any upgrade_meal upsells
       const hasUpgradeUpsell = upsells.some(
         u => u.type === 'upgrade_meal' && u.active && u.trigger_item_ids.includes(item.id)
       );
 
       if (hasUpgradeUpsell) {
+        setPendingUpsellAdd({
+          item,
+          quantity: quantity ?? 1,
+          variations,
+          servingPreference,
+          addOns,
+        });
         setUpsellTriggerItem(item);
         setShowAddToCartUpsell(true);
+        return;
       }
+
+      cart.addToCart(item, quantity, variations, servingPreference, addOns);
     },
-    [cart.addToCart, upsells]
+    [cart, upsells]
   );
+
+  const handleAddPendingTriggerItem = React.useCallback(() => {
+    if (!pendingUpsellAdd) return;
+
+    cart.addToCart(
+      pendingUpsellAdd.item,
+      pendingUpsellAdd.quantity,
+      pendingUpsellAdd.variations,
+      pendingUpsellAdd.servingPreference,
+      pendingUpsellAdd.addOns
+    );
+    setPendingUpsellAdd(null);
+  }, [cart, pendingUpsellAdd]);
+
+  const handleDismissAddToCartUpsell = React.useCallback(() => {
+    setShowAddToCartUpsell(false);
+    setUpsellTriggerItem(null);
+    setPendingUpsellAdd(null);
+  }, []);
 
   const handleViewChange = (view: 'menu' | 'cart' | 'checkout') => {
     if (view === 'checkout' && currentView === 'cart') {
@@ -262,12 +294,10 @@ function MainApp() {
           upsells={upsells}
           bundles={bundles}
           onAddToCart={cart.addToCart}
+          onAddTriggerItem={handleAddPendingTriggerItem}
           onCustomize={handleUpsellCustomize}
           onOpenBundleCustomization={handleOpenBundleCustomization}
-          onDismiss={() => {
-            setShowAddToCartUpsell(false);
-            setUpsellTriggerItem(null);
-          }}
+          onDismiss={handleDismissAddToCartUpsell}
         />
       )}
 

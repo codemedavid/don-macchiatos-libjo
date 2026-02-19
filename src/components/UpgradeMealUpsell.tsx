@@ -15,6 +15,7 @@ interface UpgradeMealUpsellProps {
         servingPreference?: ServingPreferenceOption,
         addOns?: AddOn[]
     ) => void;
+    onAddTriggerItem?: () => void;
     onCustomize: (item: MenuItem, discountedBasePrice?: number) => void;
     onOpenBundleCustomization?: (bundle: Bundle) => void;
     onDismiss: () => void;
@@ -27,6 +28,7 @@ const UpgradeMealUpsell: React.FC<UpgradeMealUpsellProps> = ({
     upsells,
     bundles = [],
     onAddToCart,
+    onAddTriggerItem,
     onCustomize,
     onOpenBundleCustomization,
     onDismiss,
@@ -77,9 +79,12 @@ const UpgradeMealUpsell: React.FC<UpgradeMealUpsellProps> = ({
 
     useEffect(() => {
         if (!relevantUpsell || offerItems.length === 0 || !displayTriggerItem) {
+            if (triggerItem && onAddTriggerItem) {
+                onAddTriggerItem();
+            }
             onDismiss();
         }
-    }, []);
+    }, [relevantUpsell, offerItems.length, displayTriggerItem, triggerItem, onAddTriggerItem, onDismiss]);
 
     useEffect(() => {
         if (relevantUpsell && offerItems.length > 0 && displayTriggerItem) {
@@ -88,18 +93,21 @@ const UpgradeMealUpsell: React.FC<UpgradeMealUpsellProps> = ({
         }
     }, [relevantUpsell, offerItems.length, displayTriggerItem]);
 
-    if (!relevantUpsell || offerItems.length === 0 || !displayTriggerItem) return null;
-
-    const handleAlaCarte = () => {
-        setSelectedChoice('ala_carte');
-        setTimeout(() => onDismiss(), 250);
-    };
-
     // Check if this upsell is linked to a bundle
     const linkedBundle = useMemo(() => {
         if (!relevantUpsell?.bundle_id) return null;
         return bundles.find(b => b.id === relevantUpsell.bundle_id && b.active) || null;
     }, [relevantUpsell, bundles]);
+
+    if (!relevantUpsell || offerItems.length === 0 || !displayTriggerItem) return null;
+
+    const handleAlaCarte = () => {
+        setSelectedChoice('ala_carte');
+        if (triggerItem && onAddTriggerItem) {
+            onAddTriggerItem();
+        }
+        setTimeout(() => onDismiss(), 250);
+    };
 
     const handleUpgrade = () => {
         setSelectedChoice('upgrade');
@@ -109,6 +117,10 @@ const UpgradeMealUpsell: React.FC<UpgradeMealUpsellProps> = ({
             onOpenBundleCustomization(linkedBundle);
             setTimeout(() => onDismiss(), 250);
             return;
+        }
+
+        if (triggerItem && onAddTriggerItem) {
+            onAddTriggerItem();
         }
 
         offerItems.forEach(item => {
@@ -141,7 +153,7 @@ const UpgradeMealUpsell: React.FC<UpgradeMealUpsellProps> = ({
                 {/* Floating Close Button */}
                 <div className="absolute top-0 right-0 p-4 z-10">
                     <button
-                        onClick={onDismiss}
+                        onClick={handleAlaCarte}
                         className="w-10 h-10 bg-black/50 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-colors"
                     >
                         <X className="w-5 h-5" />
