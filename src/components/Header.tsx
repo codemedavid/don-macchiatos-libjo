@@ -15,10 +15,10 @@ const Header: React.FC<HeaderProps> = ({ cartItemsCount, onCartClick, onMenuClic
         <div className="flex items-center justify-between h-16">
           <button 
             onClick={onMenuClick}
-            className="flex items-center space-x-2 text-black hover:text-cream-600 transition-colors duration-200"
+            className="flex items-center space-x-2 text-black hover:text-espresso-600 transition-colors duration-200"
           >
-            <img src="/logo.jpg" className="w-16 h-16"/>
-            <h1 className="text-2xl font-playfair font-semibold">Beracah Cafe</h1>
+            <img src="/logo.png" className="w-12 h-12 rounded-full object-cover"/>
+            <h1 className="text-2xl font-playfair font-semibold tracking-tight">Don Macchiatos</h1>
           </button>
           
           <div className="flex items-center space-x-2">

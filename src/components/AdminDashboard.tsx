@@ -14,7 +14,7 @@ import BundleManager from './BundleManager';
 
 const AdminDashboard: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    return localStorage.getItem('beracah_admin_auth') === 'true';
+    return localStorage.getItem('donmacchiatos_admin_auth') === 'true';
   });
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
@@ -271,9 +271,9 @@ const AdminDashboard: React.FC = () => {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (password === 'BeracahCafe@Admin!2025') {
+    if (password === 'DonMacchiatos@Admin!2025') {
       setIsAuthenticated(true);
-      localStorage.setItem('beracah_admin_auth', 'true');
+      localStorage.setItem('donmacchiatos_admin_auth', 'true');
       setLoginError('');
     } else {
       setLoginError('Invalid password');
@@ -282,7 +282,7 @@ const AdminDashboard: React.FC = () => {
 
   const handleLogout = () => {
     setIsAuthenticated(false);
-    localStorage.removeItem('beracah_admin_auth');
+    localStorage.removeItem('donmacchiatos_admin_auth');
     setPassword('');
     setCurrentView('dashboard');
   };
@@ -837,7 +837,7 @@ const AdminDashboard: React.FC = () => {
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
               <Coffee className="h-8 w-8 text-black" />
-              <h1 className="text-2xl font-playfair font-semibold text-black">Beracah Cafe Admin</h1>
+              <h1 className="text-2xl font-playfair font-semibold text-black">Don Macchiatos Admin</h1>
             </div>
             <div className="flex items-center space-x-4">
               <a

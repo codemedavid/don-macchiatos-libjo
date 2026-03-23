@@ -78,7 +78,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, bundleCartItems, totalPr
     const allItemsText = [regularItemsText, bundleItemsText].filter(Boolean).join('\n');
 
     const orderDetails = `
-🛒 BERACAH CAFE ORDER
+🛒 DON MACCHIATOS ORDER
 
 ${customerName ? `👤 Customer: ${customerName}` : ''}
 ${contactNumber ? `📞 Contact: ${contactNumber}` : ''}
@@ -96,11 +96,11 @@ ${allItemsText}
 
 ${notes ? `📝 Notes: ${notes}` : ''}
 
-Please confirm this order to proceed. Thank you for choosing Beracah Cafe! ☕
+Please confirm this order to proceed. Thank you for choosing Don Macchiatos! ☕
     `.trim();
 
     const encodedMessage = encodeURIComponent(orderDetails);
-    const messengerUrl = `https://m.me/BeracahCafeUptown?text=${encodedMessage}`;
+    const messengerUrl = `https://messenger.com/t/61564196693136?text=${encodedMessage}`;
 
     window.open(messengerUrl, '_blank');
 
@@ -212,7 +212,7 @@ Please confirm this order to proceed. Thank you for choosing Beracah Cafe! ☕
                   type="text"
                   value={customerName}
                   onChange={(e) => setCustomerName(e.target.value)}
-                  className="w-full px-4 py-3 border border-beige-300 rounded-lg focus:ring-2 focus:ring-cream-500 focus:border-transparent transition-all duration-200"
+                  className="w-full px-4 py-3 border border-beige-300 rounded-lg focus:ring-2 focus:ring-espresso-500 focus:border-transparent transition-all duration-200"
                   placeholder="Enter your full name"
                   required={serviceType !== 'dine-in'}
                 />
@@ -226,7 +226,7 @@ Please confirm this order to proceed. Thank you for choosing Beracah Cafe! ☕
                   type="tel"
                   value={contactNumber}
                   onChange={(e) => setContactNumber(e.target.value)}
-                  className="w-full px-4 py-3 border border-beige-300 rounded-lg focus:ring-2 focus:ring-cream-500 focus:border-transparent transition-all duration-200"
+                  className="w-full px-4 py-3 border border-beige-300 rounded-lg focus:ring-2 focus:ring-espresso-500 focus:border-transparent transition-all duration-200"
                   placeholder="09XX XXX XXXX"
                   required={serviceType !== 'dine-in'}
                 />
@@ -289,7 +289,7 @@ Please confirm this order to proceed. Thank you for choosing Beracah Cafe! ☕
                         type="text"
                         value={customTime}
                         onChange={(e) => setCustomTime(e.target.value)}
-                        className="w-full px-4 py-3 border border-beige-300 rounded-lg focus:ring-2 focus:ring-cream-500 focus:border-transparent transition-all duration-200"
+                        className="w-full px-4 py-3 border border-beige-300 rounded-lg focus:ring-2 focus:ring-espresso-500 focus:border-transparent transition-all duration-200"
                         placeholder="e.g., 45 minutes, 1 hour, 2:30 PM"
                         required
                       />
@@ -305,7 +305,7 @@ Please confirm this order to proceed. Thank you for choosing Beracah Cafe! ☕
                   <textarea
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
-                    className="w-full px-4 py-3 border border-beige-300 rounded-lg focus:ring-2 focus:ring-cream-500 focus:border-transparent transition-all duration-200"
+                    className="w-full px-4 py-3 border border-beige-300 rounded-lg focus:ring-2 focus:ring-espresso-500 focus:border-transparent transition-all duration-200"
                     placeholder="Enter your complete delivery address"
                     rows={3}
                     required
@@ -319,7 +319,7 @@ Please confirm this order to proceed. Thank you for choosing Beracah Cafe! ☕
                 <textarea
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  className="w-full px-4 py-3 border border-beige-300 rounded-lg focus:ring-2 focus:ring-cream-500 focus:border-transparent transition-all duration-200"
+                  className="w-full px-4 py-3 border border-beige-300 rounded-lg focus:ring-2 focus:ring-espresso-500 focus:border-transparent transition-all duration-200"
                   placeholder="Any special requests or notes..."
                   rows={3}
                 />

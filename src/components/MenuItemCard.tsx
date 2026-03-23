@@ -56,7 +56,7 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
           </div>
         )}
 
-        <div className="aspect-w-16 aspect-h-9 bg-gradient-to-br from-cream-100 to-beige-200 relative">
+        <div className="aspect-w-16 aspect-h-9 bg-gradient-to-br from-espresso-50 to-beige-200 relative">
           {item.image ? (
             <img
               src={item.image}

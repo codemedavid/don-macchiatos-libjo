@@ -70,7 +70,7 @@ const BestPairUpsell: React.FC<BestPairUpsellProps> = ({ currentItemId, onAddToC
                             className="flex-shrink-0 w-40 bg-beige-50 rounded-xl overflow-hidden border border-beige-200 hover:shadow-md transition-all duration-200 group"
                         >
                             {/* Image */}
-                            <div className="relative h-28 bg-gradient-to-br from-cream-100 to-beige-200">
+                            <div className="relative h-28 bg-gradient-to-br from-espresso-50 to-beige-200">
                                 {item.image ? (
                                     <img
                                         src={item.image}
