@@ -43,7 +43,9 @@ export default {
       },
       fontFamily: {
         'inter': ['Inter', 'sans-serif'],
-        'playfair': ['Playfair Display', 'serif']
+        'playfair': ['Playfair Display', 'serif'],
+        'headline': ['Noto Serif', 'serif'],
+        'body': ['Manrope', 'sans-serif'],
       },
       animation: {
         'fade-in': 'fadeIn 0.5s ease-in-out',

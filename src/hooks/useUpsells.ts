@@ -1,15 +1,22 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { Upsell, UpsellType, MenuItem } from '../types';
+import { getCache, setCache } from '../lib/cache';
+
+const CACHE_KEY = 'upsells';
 
 export const useUpsells = () => {
-    const [upsells, setUpsells] = useState<Upsell[]>([]);
-    const [loading, setLoading] = useState(true);
+    const cached = getCache<Upsell[]>(CACHE_KEY);
+    const [upsells, setUpsells] = useState<Upsell[]>(cached || []);
+    const [loading, setLoading] = useState(!cached);
     const [error, setError] = useState<string | null>(null);
+    const isInitialLoad = useRef(true);
 
     const fetchUpsells = async () => {
         try {
-            setLoading(true);
+            if (!isInitialLoad.current || !cached) {
+                setLoading(true);
+            }
             const { data, error: fetchError } = await supabase
                 .from('upsells')
                 .select('*')
@@ -37,12 +44,14 @@ export const useUpsells = () => {
             }));
 
             setUpsells(formatted);
+            setCache(CACHE_KEY, formatted);
             setError(null);
         } catch (err) {
             console.error('Error fetching upsells:', err);
             setError(err instanceof Error ? err.message : 'Failed to fetch upsells');
         } finally {
             setLoading(false);
+            isInitialLoad.current = false;
         }
     };
 

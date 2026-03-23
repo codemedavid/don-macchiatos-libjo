@@ -1,15 +1,22 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { Bundle, BundleItem, MenuItem, CartItem } from '../types';
+import { getCache, setCache } from '../lib/cache';
+
+const CACHE_KEY = 'bundles';
 
 export const useBundles = () => {
-    const [bundles, setBundles] = useState<Bundle[]>([]);
-    const [loading, setLoading] = useState(true);
+    const cached = getCache<Bundle[]>(CACHE_KEY);
+    const [bundles, setBundles] = useState<Bundle[]>(cached || []);
+    const [loading, setLoading] = useState(!cached);
     const [error, setError] = useState<string | null>(null);
+    const isInitialLoad = useRef(true);
 
     const fetchBundles = async () => {
         try {
-            setLoading(true);
+            if (!isInitialLoad.current || !cached) {
+                setLoading(true);
+            }
 
             // Fetch bundles with their items, and each item's menu_item with relations
             const { data, error: fetchError } = await supabase
@@ -91,12 +98,14 @@ export const useBundles = () => {
             }));
 
             setBundles(formatted);
+            setCache(CACHE_KEY, formatted);
             setError(null);
         } catch (err) {
             console.error('Error fetching bundles:', err);
             setError(err instanceof Error ? err.message : 'Failed to fetch bundles');
         } finally {
             setLoading(false);
+            isInitialLoad.current = false;
         }
     };
 

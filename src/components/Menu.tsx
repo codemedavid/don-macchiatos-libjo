@@ -32,6 +32,7 @@ const Menu: React.FC<MenuProps> = ({
 }) => {
   const { categories } = useCategories();
   const [localActiveCategory, setLocalActiveCategory] = React.useState('hot-coffee');
+  const mobileContentRef = React.useRef<HTMLDivElement>(null);
 
   const activeCategory = propActiveCategory || localActiveCategory;
   const setActiveCategory = onCategoryChange || setLocalActiveCategory;
@@ -116,17 +117,106 @@ const Menu: React.FC<MenuProps> = ({
   }, [categories, activeCategory, setActiveCategory]);
 
 
+  // Scroll to category in the mobile content area (scrolls container, not window)
+  const handleMobileCategoryClick = (categoryId: string) => {
+    setActiveCategory(categoryId);
+
+    const container = mobileContentRef.current;
+    const element = document.getElementById(`mobile-${categoryId}`);
+    if (element && container) {
+      const elementTop = element.offsetTop - container.offsetTop;
+      container.scrollTo({ top: elementTop - 8, behavior: 'smooth' });
+    }
+  };
+
+  // Intersection Observer for mobile scroll container
+  React.useEffect(() => {
+    if (categories.length === 0) return;
+    const container = mobileContentRef.current;
+    if (!container) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        let maxRatio = 0;
+        let activeSection = '';
+
+        entries.forEach((entry) => {
+          if (entry.intersectionRatio > maxRatio) {
+            maxRatio = entry.intersectionRatio;
+            // Strip "mobile-" prefix to get the actual category id
+            activeSection = entry.target.id.replace('mobile-', '');
+          }
+        });
+
+        if (maxRatio > 0.1 && activeSection) {
+          setActiveCategory(activeSection);
+        }
+      },
+      {
+        root: container,
+        rootMargin: '-10px 0px -60% 0px',
+        threshold: [0, 0.1, 0.25, 0.5, 0.75, 1]
+      }
+    );
+
+    categories.forEach((category) => {
+      const element = document.getElementById(`mobile-${category.id}`);
+      if (element) observer.observe(element);
+    });
+
+    return () => observer.disconnect();
+  }, [categories, setActiveCategory]);
+
   return (
     <>
       <DesktopSubNav
         activeCategory={activeCategory}
         onCategoryClick={handleCategoryClick}
       />
-      <MobileNav
-        activeCategory={activeCategory}
-        onCategoryClick={handleCategoryClick}
-      />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+
+      {/* Mobile: sidebar + content layout */}
+      <div className="md:hidden sticky top-16 z-30 flex" style={{ height: 'calc(100vh - 4rem)' }}>
+        <MobileNav
+          activeCategory={activeCategory}
+          onCategoryClick={handleMobileCategoryClick}
+        />
+        <div className="flex-1 overflow-y-auto bg-beige-50" ref={mobileContentRef}>
+          <div className="px-3 py-4">
+            {categories.map((category) => {
+              const categoryItems = menuItems.filter(item => item.category === category.id);
+              if (categoryItems.length === 0) return null;
+
+              return (
+                <section key={category.id} id={`mobile-${category.id}`} className="mb-6">
+                  <div className="flex items-center mb-3">
+                    <div className="w-1 h-6 bg-espresso-700 rounded-full mr-2" />
+                    <h3 className="text-lg font-playfair font-semibold text-black">{category.name}</h3>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    {categoryItems.map((item) => {
+                      const cartItem = cartItems.find(ci => ci.id === item.id);
+                      return (
+                        <MenuItemCard
+                          key={item.id}
+                          item={item}
+                          onAddToCart={addToCart}
+                          quantity={cartItem?.quantity || 0}
+                          onUpdateQuantity={updateQuantity}
+                          onCustomize={onCustomize}
+                        />
+                      );
+                    })}
+                  </div>
+                </section>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Desktop: original full-width layout */}
+      <main className="hidden md:block max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="text-center mb-12">
           <h2 className="text-4xl font-playfair font-semibold text-black mb-4">Our Menu</h2>
           <p className="text-gray-600 max-w-2xl mx-auto">

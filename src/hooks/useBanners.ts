@@ -1,15 +1,23 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { PromotionalBanner } from '../types';
+import { getCache, setCache } from '../lib/cache';
+
+const CACHE_KEY = 'banners';
 
 export const useBanners = () => {
-    const [banners, setBanners] = useState<PromotionalBanner[]>([]);
-    const [loading, setLoading] = useState(true);
+    const cached = getCache<PromotionalBanner[]>(CACHE_KEY);
+    const [banners, setBanners] = useState<PromotionalBanner[]>(cached || []);
+    const [loading, setLoading] = useState(!cached);
     const [error, setError] = useState<string | null>(null);
+    const isInitialLoad = useRef(true);
 
     const fetchBanners = async (activeOnly = false) => {
         try {
-            setLoading(true);
+            // Only show loading spinner on first load with no cache
+            if (!isInitialLoad.current || !cached) {
+                setLoading(true);
+            }
 
             let query = supabase
                 .from('promotional_banners')
@@ -28,13 +36,16 @@ export const useBanners = () => {
 
             if (fetchError) throw fetchError;
 
-            setBanners(data || []);
+            const result = data || [];
+            setBanners(result);
+            setCache(CACHE_KEY, result);
             setError(null);
         } catch (err) {
             console.error('Error fetching banners:', err);
             setError(err instanceof Error ? err.message : 'Failed to fetch banners');
         } finally {
             setLoading(false);
+            isInitialLoad.current = false;
         }
     };
 

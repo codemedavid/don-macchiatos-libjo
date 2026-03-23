@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;1,400&amp;family=Manrope:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-tertiary-container": "#9e9591",
+              "on-tertiary": "#ffffff",
+              "primary-fixed-dim": "#dec1af",
+              "primary": "#26170c",
+              "secondary-fixed": "#ffdbce",
+              "on-primary-container": "#ac9181",
+              "surface-container-lowest": "#ffffff",
+              "surface-container-high": "#e9e8e5",
+              "on-secondary-fixed-variant": "#5b4137",
+              "secondary-fixed-dim": "#e4beb2",
+              "primary-fixed": "#fbddca",
+              "error-container": "#ffdad6",
+              "on-primary": "#ffffff",
+              "tertiary": "#1f1917",
+              "tertiary-fixed": "#ece0dc",
+              "on-tertiary-fixed": "#201a18",
+              "surface-container": "#efeeeb",
+              "surface-container-low": "#f4f3f1",
+              "on-tertiary-fixed-variant": "#4c4542",
+              "tertiary-fixed-dim": "#cfc4c0",
+              "secondary-container": "#fed7ca",
+              "on-surface-variant": "#4f453f",
+              "on-secondary-fixed": "#2b160f",
+              "on-error": "#ffffff",
+              "inverse-on-surface": "#f2f1ee",
+              "on-background": "#1a1c1a",
+              "surface": "#faf9f6",
+              "surface-container-highest": "#e3e2e0",
+              "outline-variant": "#d2c4bc",
+              "inverse-primary": "#dec1af",
+              "inverse-surface": "#2f312f",
+              "background": "#faf9f6",
+              "surface-bright": "#faf9f6",
+              "primary-container": "#3d2b1f",
+              "on-secondary-container": "#795c51",
+              "tertiary-container": "#342e2b",
+              "outline": "#81756e",
+              "on-surface": "#1a1c1a",
+              "error": "#ba1a1a",
+              "surface-dim": "#dbdad7",
+              "on-primary-fixed-variant": "#574335",
+              "secondary": "#75584d",
+              "on-primary-fixed": "#28180d",
+              "on-secondary": "#ffffff",
+              "on-error-container": "#93000a",
+              "surface-variant": "#e3e2e0",
+              "surface-tint": "#705a4c"
+            },
+            fontFamily: {
+              "headline": ["Noto Serif"],
+              "body": ["Manrope"],
+              "label": ["Manrope"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Manrope', sans-serif;
+            background-color: #faf9f6;
+            color: #26170c;
+        }
+        h1, h2, h3 {
+            font-family: 'Noto Serif', serif;
+        }
+    </style>
+</head>
+<body class="bg-surface text-primary antialiased">
+<!-- TopNavBar Navigation Shell -->
+<nav class="bg-[#faf9f6]/70 dark:bg-[#26170c]/70 backdrop-blur-md fixed top-0 w-full z-50">
+<div class="flex justify-between items-center px-8 py-6 max-w-7xl mx-auto">
+<div class="flex items-center gap-4">
+<img alt="Don Macchiatos Logo" class="h-8 w-auto opacity-90" data-alt="Minimalist Don Macchiatos logo in dark espresso" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAjnZGqH4bE0QNUQ3LoQvONs6m1TZ45eUFGdAhRdXxuzXHeAf2twAZJecj74Jm_7mTdWx9Jhd7f1Gjz1i4cnhm0cZeVOPA_Py5n9WVFzkXfWhbHSVe04hoLYtTVFugFXr3bnPSc89wGWlWPUnYBvZ6v5fI37BrrG6ZI5I3qBfgg2Ls2YB6dKP9MxyJV5NT7axhbQY4tM3eFgZE2gvjR4MQ8sJ7QMscdE3KKgxRlTM9Op1gJwnWDS_HOAICYm_IsvS_ZfZohkVCepXCy"/>
+<span class="text-2xl font-serif italic text-[#26170c] dark:text-[#faf9f6]">Don Macchiatos</span>
+</div>
+<div class="hidden md:flex items-center space-x-12">
+<a class="text-[#26170c] dark:text-[#faf9f6] border-b border-[#26170c]/20 pb-1 font-body text-sm tracking-wide transition-colors duration-300" href="#">Sourcing</a>
+<a class="text-[#26170c]/60 dark:text-[#faf9f6]/60 hover:text-[#26170c] dark:hover:text-[#faf9f6] transition-colors duration-300 font-body text-sm tracking-wide" href="#">Brew Guide</a>
+<a class="text-[#26170c]/60 dark:text-[#faf9f6]/60 hover:text-[#26170c] dark:hover:text-[#faf9f6] transition-colors duration-300 font-body text-sm tracking-wide" href="#">Shop</a>
+</div>
+<div class="flex items-center">
+<button class="p-2 scale-98 active:opacity-80 transition-all">
+<span class="material-symbols-outlined text-[#26170c]" data-icon="shopping_bag">shopping_bag</span>
+</button>
+</div>
+</div>
+</nav>
+<!-- Hero Section -->
+<main class="relative min-h-screen flex items-center pt-24">
+<!-- Background/Atmospheric Layers -->
+<div class="absolute inset-0 z-0 overflow-hidden">
+<div class="absolute top-0 right-0 w-1/2 h-full bg-surface-container-low/30 -skew-x-12 transform translate-x-24"></div>
+</div>
+<div class="container mx-auto px-8 md:px-12 grid grid-cols-1 lg:grid-cols-12 gap-16 items-center relative z-10">
+<!-- Text Content -->
+<div class="lg:col-span-6 flex flex-col items-start space-y-10">
+<div class="space-y-4">
+<p class="text-secondary uppercase tracking-[0.3em] text-xs font-semibold">The Artisanal Choice</p>
+<h1 class="text-5xl md:text-7xl lg:text-8xl leading-[1.1] text-primary font-headline font-normal tracking-tight">
+                        Elevated Coffee, <br/>
+<span class="italic">Simply Poured</span>
+</h1>
+</div>
+<p class="text-on-surface-variant font-body text-lg md:text-xl max-w-md leading-relaxed opacity-80">
+                    A curated selection of single-origin beans, roasted with technical precision and delivered with quiet intentionality.
+                </p>
+<div class="flex flex-col sm:flex-row items-center gap-8 pt-4">
+<a class="bg-primary text-on-primary px-10 py-5 rounded-full font-body font-medium tracking-wide scale-98 active:opacity-80 transition-all hover:bg-primary/90" href="#">
+                        Shop Now
+                    </a>
+<a class="group flex items-center gap-3 text-primary font-body font-medium tracking-wide" href="#">
+                        Explore Sourcing
+                        <span class="w-12 h-[1px] bg-primary/20 group-hover:w-16 group-hover:bg-primary transition-all duration-500"></span>
+</a>
+</div>
+</div>
+<!-- Asymmetric Image Container -->
+<div class="lg:col-span-6 relative flex justify-end">
+<div class="relative w-full max-w-md lg:max-w-lg aspect-[4/5] overflow-hidden rounded-lg shadow-2xl shadow-primary/5 bg-surface-variant">
+<img alt="Premium Coffee Pour" class="w-full h-full object-cover grayscale-[20%] contrast-[1.05]" data-alt="Artisanal slow-pour coffee in a glass carafe on a stone surface" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDl9fQivmtgjSg4ncDbDXep-uOSEcQjbRnoSNpPP8viD_GYOJ5KJ0yAfRuJJEYr_85NTDQuRQWIPQg4fW3Bbj7WH6K6MVA8guwPOp0ll5gVaotxPjjIpNZaL45YDqxoJJ-p2skblnZmFZsHMiixGY2Ple8C330rCvl05MB7A6jwz8zeB2N3MT7vU9ctbl5fBeUxIosZVmP3uUxNX0G3_VVivBMWMrWnBxdFyBhWkHEgC4MRMa37ACHj92xU4gBo8zdagPCBf7Wtu46p"/>
+<!-- Overlapping Texture/Element -->
+<div class="absolute -bottom-6 -left-6 w-32 h-32 bg-surface p-6 rounded-sm shadow-xl hidden md:flex items-center justify-center">
+<img alt="Logo" class="w-16 h-auto opacity-20" data-alt="Subtle logo watermark on paper texture" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBJ8TJ4icrmKIg8xdTFAlMwm9DMFG--7cMKhPWnb0hK7LEy-9Cts1yW5-K_niJXBYeK2hkXuB6MXQsqHmcOPIqp9W05LvuS7kkr6Yue8XER5Ty8355vf_qOf_zeYi415YeCxT_REZ0fMK0UaU2RQjcmoj2sFYLLPsjtLWtFXnR5Os7v8G6LDgyieMJJFF74j6ENLzFSXxZaxE75nq5VjpF92ig0Jb7xpsWf5fl_HMT_LW6wBcrxo0JFfP6xbuE-G5c6ceKPk_kerf4I"/>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="w-full border-t border-[#26170c]/5 dark:border-[#faf9f6]/5 bg-[#faf9f6] dark:bg-[#26170c]">
+<div class="flex flex-col md:flex-row justify-between items-center px-12 py-20 w-full max-w-7xl mx-auto">
+<div class="mb-8 md:mb-0">
+<p class="font-sans text-xs uppercase tracking-widest text-[#26170c] dark:text-[#faf9f6] opacity-60">
+                    © 2024 Don Macchiatos. Crafted for the intentional.
+                </p>
+</div>
+<div class="flex space-x-12">
+<a class="font-sans text-xs uppercase tracking-widest text-[#26170c] dark:text-[#faf9f6] opacity-60 hover:opacity-100 underline-offset-4 hover:underline transition-opacity" href="#">Privacy</a>
+<a class="font-sans text-xs uppercase tracking-widest text-[#26170c] dark:text-[#faf9f6] opacity-60 hover:opacity-100 underline-offset-4 hover:underline transition-opacity" href="#">Terms</a>
+<a class="font-sans text-xs uppercase tracking-widest text-[#26170c] dark:text-[#faf9f6] opacity-60 hover:opacity-100 underline-offset-4 hover:underline transition-opacity" href="#">Wholesale</a>
+</div>
+</div>
+</footer>
+</body></html>

@@ -1,15 +1,22 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { MenuItem } from '../types';
+import { getCache, setCache } from '../lib/cache';
+
+const CACHE_KEY = 'menuItems';
 
 export const useMenu = () => {
-  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const cached = getCache<MenuItem[]>(CACHE_KEY);
+  const [menuItems, setMenuItems] = useState<MenuItem[]>(cached || []);
+  const [loading, setLoading] = useState(!cached);
   const [error, setError] = useState<string | null>(null);
+  const isInitialLoad = useRef(true);
 
   const fetchMenuItems = async () => {
     try {
-      setLoading(true);
+      if (!isInitialLoad.current || !cached) {
+        setLoading(true);
+      }
 
       // Fetch menu items with their option groups
       const { data: items, error: itemsError } = await supabase
@@ -55,12 +62,14 @@ export const useMenu = () => {
       })) || [];
 
       setMenuItems(formattedItems);
+      setCache(CACHE_KEY, formattedItems);
       setError(null);
     } catch (err) {
       console.error('Error fetching menu items:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch menu items');
     } finally {
       setLoading(false);
+      isInitialLoad.current = false;
     }
   };
 

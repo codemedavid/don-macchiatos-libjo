@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { useCategories } from '../hooks/useCategories';
 
 interface MobileNavProps {
@@ -8,44 +8,57 @@ interface MobileNavProps {
 
 const MobileNav: React.FC<MobileNavProps> = ({ activeCategory, onCategoryClick }) => {
   const { categories } = useCategories();
+  const activeRef = useRef<HTMLButtonElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
-  const handleCategoryClick = (categoryId: string) => {
-    onCategoryClick(categoryId);
-    
-    // Simple scroll to element
-    const element = document.getElementById(categoryId);
-    if (element) {
-      const headerHeight = 64;
-      const mobileNavHeight = 60;
-      const offset = headerHeight + mobileNavHeight + 20;
-      
-      const elementPosition = element.getBoundingClientRect().top + window.pageYOffset - offset;
-      
-      window.scrollTo({
-        top: elementPosition,
-        behavior: 'smooth'
-      });
+  // Auto-scroll sidebar to keep active category visible
+  useEffect(() => {
+    if (activeRef.current && scrollRef.current) {
+      const container = scrollRef.current;
+      const el = activeRef.current;
+      const containerTop = container.scrollTop;
+      const containerBottom = containerTop + container.clientHeight;
+      const elTop = el.offsetTop;
+      const elBottom = elTop + el.offsetHeight;
+
+      if (elTop < containerTop || elBottom > containerBottom) {
+        el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      }
     }
-  };
-  
+  }, [activeCategory]);
+
+  if (categories.length === 0) return null;
+
   return (
-    <div className="sticky top-16 z-40 bg-white/95 backdrop-blur-sm border-b border-beige-200 md:top-28 md:hidden shadow-sm">
-      <div className="flex overflow-x-auto scrollbar-hide px-4 py-3">
-        {categories.map((category) => (
+    <div
+      ref={scrollRef}
+      className="md:hidden flex-shrink-0 w-[82px] overflow-y-auto overflow-x-hidden scrollbar-hide bg-white border-r border-beige-200"
+      style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+    >
+      {categories.map((category) => {
+        const isActive = activeCategory === category.id;
+        return (
           <button
             key={category.id}
-            onClick={() => handleCategoryClick(category.id)}
-            className={`flex-shrink-0 flex items-center space-x-2 px-4 py-2 rounded-full mr-3 transition-all duration-200 ${
-              activeCategory === category.id
-                ? 'bg-black text-white'
-                : 'bg-beige-100 text-gray-700 hover:bg-beige-200'
+            ref={isActive ? activeRef : null}
+            onClick={() => onCategoryClick(category.id)}
+            className={`w-full flex flex-col items-center justify-center py-3 px-1 transition-all duration-200 border-l-[3px] ${
+              isActive
+                ? 'border-l-espresso-700 bg-espresso-50'
+                : 'border-l-transparent hover:bg-beige-50'
             }`}
           >
-            <span className="text-lg">{category.icon}</span>
-            <span className="text-sm font-medium whitespace-nowrap">{category.name}</span>
+            <span className="text-2xl mb-1">{category.icon}</span>
+            <span
+              className={`text-[10px] leading-tight text-center font-medium line-clamp-2 ${
+                isActive ? 'text-espresso-800' : 'text-gray-500'
+              }`}
+            >
+              {category.name}
+            </span>
           </button>
-        ))}
-      </div>
+        );
+      })}
     </div>
   );
 };

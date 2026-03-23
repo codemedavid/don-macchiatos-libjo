@@ -271,7 +271,7 @@ const AdminDashboard: React.FC = () => {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (password === 'DonMacchiatos@Admin!2025') {
+    if (password === 'DonMacchiatos@Admin!2026') {
       setIsAuthenticated(true);
       localStorage.setItem('donmacchiatos_admin_auth', 'true');
       setLoginError('');
