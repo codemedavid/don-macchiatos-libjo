@@ -99,8 +99,8 @@ ${notes ? `📝 Notes: ${notes}` : ''}
 Please confirm this order to proceed. Thank you for choosing Don Macchiatos! ☕
     `.trim();
 
-    await navigator.clipboard.writeText(orderDetails);
-    window.open('https://m.me/donmacchiatoslibjo', '_blank');
+    const encodedMessage = encodeURIComponent(orderDetails);
+    window.open(`https://www.messenger.com/t/donmacchiatospdi?text=${encodedMessage}`, '_blank');
 
   };
 
@@ -474,7 +474,7 @@ Please confirm this order to proceed. Thank you for choosing Don Macchiatos! ☕
           </button>
 
           <p className="text-xs text-gray-500 text-center mt-3">
-            Your order details will be copied. Paste them in Messenger to confirm.
+            You'll be redirected to Facebook Messenger to confirm your order
           </p>
         </div>
       </div>
