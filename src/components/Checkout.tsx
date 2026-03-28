@@ -100,7 +100,7 @@ Please confirm this order to proceed. Thank you for choosing Don Macchiatos! ☕
     `.trim();
 
     const encodedMessage = encodeURIComponent(orderDetails);
-    window.open(`https://m.me/donmacchiatospdi?text=${encodedMessage}`, '_self');
+    window.location.href = `https://m.me/donmacchiatospdi?text=${encodedMessage}`;
 
   };
 
