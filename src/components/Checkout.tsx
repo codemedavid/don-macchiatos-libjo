@@ -35,7 +35,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, bundleCartItems, totalPr
     setStep('payment');
   };
 
-  const handlePlaceOrder = () => {
+  const handlePlaceOrder = async () => {
     const timeInfo = serviceType === 'pickup'
       ? (pickupTime === 'custom' ? customTime : `${pickupTime} minutes`)
       : '';
@@ -99,10 +99,8 @@ ${notes ? `📝 Notes: ${notes}` : ''}
 Please confirm this order to proceed. Thank you for choosing Don Macchiatos! ☕
     `.trim();
 
-    const encodedMessage = encodeURIComponent(orderDetails);
-    const messengerUrl = `https://m.me/donmacchiatoslibjo?text=${encodedMessage}`;
-
-    window.open(messengerUrl, '_blank');
+    await navigator.clipboard.writeText(orderDetails);
+    window.open('https://m.me/donmacchiatoslibjo', '_blank');
 
   };
 
@@ -476,7 +474,7 @@ Please confirm this order to proceed. Thank you for choosing Don Macchiatos! ☕
           </button>
 
           <p className="text-xs text-gray-500 text-center mt-3">
-            You'll be redirected to Facebook Messenger to confirm your order
+            Your order details will be copied. Paste them in Messenger to confirm.
           </p>
         </div>
       </div>
