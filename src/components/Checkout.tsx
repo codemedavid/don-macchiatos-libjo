@@ -100,6 +100,12 @@ Please confirm this order to proceed. Thank you for choosing Don Macchiatos! ☕
     `.trim();
 
     const encodedMessage = encodeURIComponent(orderDetails);
+
+    // Copy order text to clipboard as fallback in case prefilled text doesn't work
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(orderDetails).catch(() => {});
+    }
+
     window.location.href = `https://www.messenger.com/t/donmacchiatospdi?text=${encodedMessage}`;
 
   };
@@ -474,7 +480,7 @@ Please confirm this order to proceed. Thank you for choosing Don Macchiatos! ☕
           </button>
 
           <p className="text-xs text-gray-500 text-center mt-3">
-            You'll be redirected to Facebook Messenger to confirm your order
+            You'll be redirected to Facebook Messenger. Your order details will be copied to your clipboard — just paste if the message isn't prefilled.
           </p>
         </div>
       </div>
