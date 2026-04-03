@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { ArrowLeft, Clock } from 'lucide-react';
 import { CartItem, CartBundleItem, PaymentMethod, ServiceType } from '../types';
+import { useMutation, useAction } from "convex/react";
+import { api } from "../../convex/_generated/api";
 
 interface CheckoutProps {
   cartItems: CartItem[];
@@ -19,6 +21,9 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, bundleCartItems, totalPr
   const [customTime, setCustomTime] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cash');
   const [notes, setNotes] = useState('');
+
+  const createOrder = useMutation(api.orders.createOrder);
+  const sendNotification = useAction(api.notifications.sendNewOrderNotification);
 
   // Scroll to top when step changes
   React.useEffect(() => {
@@ -98,6 +103,64 @@ ${notes ? `📝 Notes: ${notes}` : ''}
 
 Please confirm this order to proceed. Thank you for choosing Don Macchiatos! ☕
     `.trim();
+
+    // Save order to Convex
+    try {
+      const convexItems = cartItems.map((item) => ({
+        name: item.name,
+        quantity: item.quantity,
+        totalPrice: item.totalPrice,
+        variations: item.selectedVariations?.map((v) => ({
+          type: v.type,
+          name: v.name,
+        })),
+        servingPreference: item.selectedServingPreference?.name,
+        addOns: item.selectedAddOns?.map((a) => a.name),
+      }));
+
+      const convexBundleItems = bundleCartItems.map((bundle) => ({
+        bundleName: bundle.bundleName,
+        quantity: bundle.quantity,
+        bundlePrice: bundle.bundlePrice,
+        items: bundle.items.map((item) => ({
+          name: item.name,
+          variations: item.selectedVariations?.map((v) => ({
+            type: v.type,
+            name: v.name,
+          })),
+          servingPreference: item.selectedServingPreference?.name,
+          addOns: item.selectedAddOns?.map((a) => a.name),
+        })),
+      }));
+
+      const result = await createOrder({
+        customerName,
+        contactNumber,
+        serviceType,
+        address: serviceType === "delivery" ? address : undefined,
+        pickupTime:
+          serviceType === "pickup"
+            ? pickupTime === "custom"
+              ? customTime
+              : `${pickupTime} minutes`
+            : undefined,
+        paymentMethod,
+        items: convexItems,
+        bundleItems:
+          convexBundleItems.length > 0 ? convexBundleItems : undefined,
+        notes: notes || undefined,
+        total: totalPrice,
+      });
+
+      // Send push notification (fire and forget)
+      sendNotification({
+        orderNumber: result.orderNumber,
+        customerName,
+        total: totalPrice,
+      }).catch(() => {});
+    } catch (error) {
+      console.warn("Failed to save order to Convex:", error);
+    }
 
     const encodedMessage = encodeURIComponent(orderDetails);
 
