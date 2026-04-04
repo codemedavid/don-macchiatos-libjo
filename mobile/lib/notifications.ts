@@ -38,7 +38,7 @@ export async function registerForPushNotifications(): Promise<string | null> {
       name: "New Orders",
       importance: Notifications.AndroidImportance.MAX,
       vibrationPattern: [0, 250, 250, 250],
-      sound: "new-order.wav",
+      sound: "ringtone.mp3",
     });
   }
 
@@ -55,7 +55,7 @@ export async function playNewOrderSound(): Promise<void> {
       await sound.unloadAsync();
     }
     const { sound: newSound } = await Audio.Sound.createAsync(
-      require("../assets/sounds/new-order.wav")
+      require("../assets/sounds/ringtone.mp3")
     );
     sound = newSound;
     await sound.playAsync();
