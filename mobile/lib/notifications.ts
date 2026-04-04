@@ -63,3 +63,14 @@ export async function playNewOrderSound(): Promise<void> {
     console.warn("Failed to play notification sound:", error);
   }
 }
+
+export function addNotificationResponseListener(
+  onTap: (orderId: string) => void
+): Notifications.EventSubscription {
+  return Notifications.addNotificationResponseReceivedListener((response) => {
+    const data = response.notification.request.content.data;
+    if (data?.orderId) {
+      onTap(data.orderId as string);
+    }
+  });
+}

@@ -10,6 +10,7 @@ import {
   saveAuth,
   clearAuth,
 } from "../lib/auth";
+import { addNotificationResponseListener } from "../lib/notifications";
 
 export default function RootLayout() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -48,6 +49,13 @@ export default function RootLayout() {
       }
     }
   }, [isAuthenticated, isLoading]);
+
+  useEffect(() => {
+    const subscription = addNotificationResponseListener((orderId) => {
+      router.push(`/order/${orderId}`);
+    });
+    return () => subscription.remove();
+  }, [router]);
 
   const authContext: AuthContextType = {
     isAuthenticated,
