@@ -51,6 +51,7 @@ export const sendNewOrderNotification = action({
     orderNumber: v.string(),
     customerName: v.string(),
     total: v.number(),
+    orderId: v.string(),
   },
   handler: async (ctx, args) => {
     const tokens = await ctx.runQuery(api.notifications.getAllPushTokens);
@@ -61,8 +62,9 @@ export const sendNewOrderNotification = action({
       to: t.token,
       title: "New Order!",
       body: `Order ${args.orderNumber} from ${args.customerName || "Customer"} - PHP ${args.total.toFixed(2)}`,
-      sound: "default",
-      data: { orderNumber: args.orderNumber },
+      sound: "ringtone.mp3",
+      channelId: "orders",
+      data: { orderNumber: args.orderNumber, orderId: args.orderId },
     }));
 
     try {
