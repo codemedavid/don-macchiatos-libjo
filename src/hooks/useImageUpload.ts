@@ -1,14 +1,12 @@
 import { useState } from 'react';
-import { useAction } from 'convex/react';
-import { api } from '../../convex/_generated/api';
 
 const PUBLIC_KEY = import.meta.env.VITE_IMAGEKIT_PUBLIC_KEY;
+const AUTH_URL = import.meta.env.VITE_IMAGEKIT_AUTH_URL || '/api/imagekit-auth';
 const UPLOAD_URL = 'https://upload.imagekit.io/api/v1/files/upload';
 
 export const useImageUpload = () => {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const generateUploadAuth = useAction(api.imagekit.generateUploadAuth);
 
   const uploadImage = async (file: File): Promise<string> => {
     try {
@@ -25,7 +23,15 @@ export const useImageUpload = () => {
         throw new Error('Image size must be less than 10MB');
       }
 
-      const auth = await generateUploadAuth();
+      const authResponse = await fetch(AUTH_URL, { method: 'POST' });
+      if (!authResponse.ok) {
+        throw new Error('Failed to fetch upload credentials');
+      }
+      const auth = (await authResponse.json()) as {
+        token: string;
+        expire: number;
+        signature: string;
+      };
 
       const formData = new FormData();
       formData.append('file', file);
