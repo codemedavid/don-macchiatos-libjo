@@ -1,36 +1,42 @@
 import { useState } from 'react';
+import { useAction } from 'convex/react';
+import { api } from '../../convex/_generated/api';
 
-const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
-const UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
-const UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`;
+const PUBLIC_KEY = import.meta.env.VITE_IMAGEKIT_PUBLIC_KEY;
+const UPLOAD_URL = 'https://upload.imagekit.io/api/v1/files/upload';
 
 export const useImageUpload = () => {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const generateUploadAuth = useAction(api.imagekit.generateUploadAuth);
 
   const uploadImage = async (file: File): Promise<string> => {
     try {
       setUploading(true);
       setUploadProgress(0);
 
-      // Validate file type
       const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
       if (!allowedTypes.includes(file.type)) {
         throw new Error('Please upload a valid image file (JPEG, PNG, WebP, or GIF)');
       }
 
-      // Validate file size (10MB limit for Cloudinary)
       const maxSize = 10 * 1024 * 1024;
       if (file.size > maxSize) {
         throw new Error('Image size must be less than 10MB');
       }
 
+      const auth = await generateUploadAuth();
+
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('upload_preset', UPLOAD_PRESET);
+      formData.append('fileName', file.name);
+      formData.append('publicKey', PUBLIC_KEY);
+      formData.append('token', auth.token);
+      formData.append('expire', String(auth.expire));
+      formData.append('signature', auth.signature);
       formData.append('folder', 'menu-images');
+      formData.append('useUniqueFileName', 'true');
 
-      // Use XMLHttpRequest for progress tracking
       const url = await new Promise<string>((resolve, reject) => {
         const xhr = new XMLHttpRequest();
 
@@ -44,11 +50,11 @@ export const useImageUpload = () => {
         xhr.addEventListener('load', () => {
           if (xhr.status >= 200 && xhr.status < 300) {
             const response = JSON.parse(xhr.responseText);
-            resolve(response.secure_url);
+            resolve(response.url);
           } else {
             try {
               const errorResponse = JSON.parse(xhr.responseText);
-              reject(new Error(errorResponse.error?.message || 'Upload failed'));
+              reject(new Error(errorResponse.message || 'Upload failed'));
             } catch {
               reject(new Error('Upload failed'));
             }
@@ -74,9 +80,9 @@ export const useImageUpload = () => {
   };
 
   const deleteImage = async (imageUrl: string): Promise<void> => {
-    // Cloudinary deletion requires API secret (server-side only)
+    // ImageKit deletion requires the private API key (server-side only).
     // Images are removed from the database reference;
-    // unused images can be cleaned up from the Cloudinary dashboard
+    // unused images can be cleaned up from the ImageKit dashboard.
     console.log('Image reference removed:', imageUrl);
   };
 
