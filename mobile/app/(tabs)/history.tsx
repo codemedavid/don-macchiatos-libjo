@@ -1,45 +1,19 @@
 import { useState, useMemo } from "react";
-import {
-  View,
-  Text,
-  FlatList,
-  TouchableOpacity,
-  TextInput,
-  StyleSheet,
-} from "react-native";
+import { View, FlatList, TextInput, StyleSheet } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { OrderCard } from "../../components/OrderCard";
+import { AppText, Pill } from "../../components/ui";
+import { colors, fonts, radius, spacing } from "../../lib/theme";
+import { DateFilter, getDateRange } from "../../lib/format";
 
-type DateFilter = "today" | "week" | "month" | "all";
-
-function getDateRange(filter: DateFilter): { start: number; end: number } {
-  const now = new Date();
-  const end = now.getTime();
-  let start: number;
-
-  switch (filter) {
-    case "today":
-      start = new Date(
-        now.getFullYear(),
-        now.getMonth(),
-        now.getDate()
-      ).getTime();
-      break;
-    case "week":
-      start = end - 7 * 24 * 60 * 60 * 1000;
-      break;
-    case "month":
-      start = end - 30 * 24 * 60 * 60 * 1000;
-      break;
-    case "all":
-    default:
-      start = 0;
-      break;
-  }
-
-  return { start, end };
-}
+const FILTERS: { key: DateFilter; label: string }[] = [
+  { key: "today", label: "Today" },
+  { key: "week", label: "Week" },
+  { key: "month", label: "Month" },
+  { key: "all", label: "All" },
+];
 
 export default function HistoryScreen() {
   const [filter, setFilter] = useState<DateFilter>("today");
@@ -64,43 +38,37 @@ export default function HistoryScreen() {
   }, [orders, search]);
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={["top"]}>
+      <AppText variant="display" style={styles.title}>
+        History
+      </AppText>
+
       <TextInput
         style={styles.searchInput}
-        placeholder="Search orders..."
-        placeholderTextColor="#666"
+        placeholder="Search by order #, name, or contact"
+        placeholderTextColor={colors.textFaint}
         value={search}
         onChangeText={setSearch}
       />
 
       <View style={styles.filters}>
-        {(["today", "week", "month", "all"] as DateFilter[]).map((f) => (
-          <TouchableOpacity
-            key={f}
-            style={[styles.filterButton, filter === f && styles.filterActive]}
-            onPress={() => setFilter(f)}
-          >
-            <Text
-              style={[
-                styles.filterText,
-                filter === f && styles.filterTextActive,
-              ]}
-            >
-              {f === "all"
-                ? "All"
-                : f.charAt(0).toUpperCase() + f.slice(1)}
-            </Text>
-          </TouchableOpacity>
+        {FILTERS.map((f) => (
+          <Pill
+            key={f.key}
+            label={f.label}
+            active={filter === f.key}
+            onPress={() => setFilter(f.key)}
+          />
         ))}
       </View>
 
       {!orders ? (
         <View style={styles.center}>
-          <Text style={styles.loadingText}>Loading...</Text>
+          <AppText variant="muted">Loading…</AppText>
         </View>
       ) : filteredOrders.length === 0 ? (
         <View style={styles.center}>
-          <Text style={styles.emptyText}>No orders found</Text>
+          <AppText variant="muted">No orders found</AppText>
         </View>
       ) : (
         <FlatList
@@ -111,65 +79,32 @@ export default function HistoryScreen() {
           showsVerticalScrollIndicator={false}
         />
       )}
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#1a1a1a",
-  },
+  container: { flex: 1, backgroundColor: colors.screenBg },
+  title: { paddingHorizontal: spacing.md, paddingTop: spacing.sm },
   searchInput: {
-    backgroundColor: "#2a2a2a",
-    marginHorizontal: 16,
-    marginTop: 12,
-    borderRadius: 10,
-    paddingHorizontal: 16,
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginHorizontal: spacing.md,
+    marginTop: spacing.sm + 4,
+    borderRadius: radius.button,
+    paddingHorizontal: spacing.md,
     paddingVertical: 12,
     fontSize: 15,
-    color: "#fff",
+    fontFamily: fonts.body,
+    color: colors.textPrimary,
   },
   filters: {
     flexDirection: "row",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    gap: 8,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm + 4,
+    gap: spacing.sm,
   },
-  filterButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: "#444",
-  },
-  filterActive: {
-    backgroundColor: "#fff",
-    borderColor: "#fff",
-  },
-  filterText: {
-    fontSize: 13,
-    color: "#999",
-    fontWeight: "600",
-  },
-  filterTextActive: {
-    color: "#1a1a1a",
-  },
-  center: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  loadingText: {
-    color: "#999",
-    fontSize: 16,
-  },
-  emptyText: {
-    color: "#666",
-    fontSize: 16,
-  },
-  list: {
-    paddingHorizontal: 16,
-    paddingBottom: 20,
-  },
+  center: { flex: 1, justifyContent: "center", alignItems: "center" },
+  list: { paddingHorizontal: spacing.md, paddingBottom: spacing.lg },
 });

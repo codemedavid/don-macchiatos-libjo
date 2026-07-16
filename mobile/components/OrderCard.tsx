@@ -1,6 +1,9 @@
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Pressable, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 import { StatusBadge } from "./StatusBadge";
+import { AppText } from "./ui";
+import { colors, fonts, radius, shadow, spacing } from "../lib/theme";
+import { formatCurrency, formatTimeAgo } from "../lib/format";
 
 interface OrderCardProps {
   order: {
@@ -19,94 +22,72 @@ interface OrderCardProps {
 export function OrderCard({ order }: OrderCardProps) {
   const router = useRouter();
   const itemCount = order.items.reduce((sum, i) => sum + i.quantity, 0);
-  const timeAgo = getTimeAgo(order.createdAt);
+  const timeAgo = formatTimeAgo(order.createdAt);
+  const serviceLabel =
+    order.serviceType.charAt(0).toUpperCase() + order.serviceType.slice(1);
 
   return (
-    <TouchableOpacity
-      style={styles.card}
+    <Pressable
+      style={({ pressed }) => [styles.card, pressed && styles.pressed]}
       onPress={() => router.push(`/order/${order._id}`)}
-      activeOpacity={0.7}
     >
       <View style={styles.header}>
-        <Text style={styles.orderNumber}>{order.orderNumber}</Text>
+        <AppText variant="heading">{order.orderNumber}</AppText>
         <StatusBadge status={order.status} />
       </View>
 
       <View style={styles.details}>
-        <Text style={styles.customerName}>
+        <AppText variant="body" style={styles.customerName}>
           {order.customerName || "Walk-in Customer"}
-        </Text>
-        <Text style={styles.meta}>
-          {order.serviceType.charAt(0).toUpperCase() +
-            order.serviceType.slice(1)}{" "}
-          | {itemCount} item{itemCount !== 1 ? "s" : ""}
-        </Text>
-        <Text style={styles.meta}>{order.contactNumber || "No contact"}</Text>
+        </AppText>
+        <AppText variant="muted">
+          {serviceLabel} · {itemCount} item{itemCount !== 1 ? "s" : ""}
+        </AppText>
+        <AppText variant="muted">
+          {order.contactNumber || "No contact"}
+        </AppText>
       </View>
 
       <View style={styles.footer}>
-        <Text style={styles.total}>PHP {order.total.toFixed(2)}</Text>
-        <Text style={styles.time}>{timeAgo}</Text>
+        <AppText variant="price">{formatCurrency(order.total)}</AppText>
+        <AppText variant="muted" style={styles.time}>
+          {timeAgo}
+        </AppText>
       </View>
-    </TouchableOpacity>
+    </Pressable>
   );
-}
-
-function getTimeAgo(timestamp: number): string {
-  const diff = Date.now() - timestamp;
-  const minutes = Math.floor(diff / 60000);
-  if (minutes < 1) return "Just now";
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  return `${Math.floor(hours / 24)}d ago`;
 }
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: "#2a2a2a",
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
+    backgroundColor: colors.card,
+    borderRadius: radius.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.md,
+    marginBottom: spacing.sm + 4,
+    ...shadow.card,
   },
+  pressed: { opacity: 0.9, transform: [{ scale: 0.995 }] },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 8,
+    marginBottom: spacing.sm,
   },
-  orderNumber: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#fff",
-  },
-  details: {
-    marginBottom: 8,
-  },
+  details: { marginBottom: spacing.sm },
   customerName: {
-    fontSize: 15,
-    color: "#fff",
+    color: colors.textPrimary,
+    fontFamily: fonts.bodyMedium,
     marginBottom: 2,
-  },
-  meta: {
-    fontSize: 13,
-    color: "#999",
   },
   footer: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     borderTopWidth: 1,
-    borderTopColor: "#333",
-    paddingTop: 8,
+    borderTopColor: colors.border,
+    paddingTop: spacing.sm,
   },
-  total: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#4ADE80",
-  },
-  time: {
-    fontSize: 12,
-    color: "#666",
-  },
+  time: { color: colors.textFaint },
 });

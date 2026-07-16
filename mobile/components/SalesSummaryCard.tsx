@@ -1,4 +1,6 @@
-import { View, Text, StyleSheet } from "react-native";
+import { StyleSheet } from "react-native";
+import { Card, AppText } from "./ui";
+import { colors, fonts } from "../lib/theme";
 
 interface SalesSummaryCardProps {
   title: string;
@@ -11,38 +13,27 @@ export function SalesSummaryCard({
   title,
   value,
   subtitle,
-  color = "#4ADE80",
+  color = colors.textPrimary,
 }: SalesSummaryCardProps) {
   return (
-    <View style={styles.card}>
-      <Text style={styles.title}>{title}</Text>
-      <Text style={[styles.value, { color }]}>{value}</Text>
-      {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
-    </View>
+    <Card style={styles.card}>
+      <AppText variant="label">{title}</AppText>
+      <AppText style={[styles.value, { color }]}>{value}</AppText>
+      {subtitle && (
+        <AppText variant="muted" style={styles.subtitle}>
+          {subtitle}
+        </AppText>
+      )}
+    </Card>
   );
 }
 
 const styles = StyleSheet.create({
-  card: {
-    backgroundColor: "#2a2a2a",
-    borderRadius: 12,
-    padding: 16,
-    flex: 1,
-  },
-  title: {
-    fontSize: 12,
-    color: "#999",
-    fontWeight: "600",
-    textTransform: "uppercase",
-    marginBottom: 4,
-  },
+  card: { flex: 1 },
   value: {
+    fontFamily: fonts.headline,
     fontSize: 24,
-    fontWeight: "bold",
+    marginTop: 6,
   },
-  subtitle: {
-    fontSize: 12,
-    color: "#666",
-    marginTop: 4,
-  },
+  subtitle: { marginTop: 4 },
 });
