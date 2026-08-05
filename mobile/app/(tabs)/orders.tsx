@@ -12,6 +12,7 @@ import {
   playNewOrderSound,
 } from "../../lib/notifications";
 import { useAuth } from "../../lib/auth";
+import { buildActiveSections } from "../../lib/orderFilters";
 
 interface ActiveOrder {
   _id: string;
@@ -25,19 +26,6 @@ interface ActiveOrder {
   createdAt: number;
 }
 
-const SECTION_ORDER: { key: string; title: string; statuses: string[] }[] = [
-  { key: "new", title: "New", statuses: ["pending"] },
-  { key: "inProgress", title: "In Progress", statuses: ["confirmed", "preparing"] },
-  { key: "ready", title: "Ready for Handover", statuses: ["ready"] },
-];
-
-function buildSections(orders: ActiveOrder[]) {
-  return SECTION_ORDER.map((section) => ({
-    title: section.title,
-    data: orders.filter((o) => section.statuses.includes(o.status)),
-  })).filter((section) => section.data.length > 0);
-}
-
 export default function OrdersScreen() {
   const orders = useQuery(api.orders.getActiveOrders) as
     | ActiveOrder[]
@@ -48,13 +36,24 @@ export default function OrdersScreen() {
   const isInitialLoadRef = useRef(true);
 
   useEffect(() => {
+    let isCancelled = false;
+
     (async () => {
-      const token = await registerForPushNotifications();
-      if (token && role) {
+      try {
+        const token = await registerForPushNotifications();
+        if (isCancelled || !token || !role) return;
         await registerToken({ token, role });
+      } catch (error) {
+        // Push is a convenience here — orders still arrive over the live query,
+        // so a failed registration must not take the screen down.
+        console.warn("Failed to register for push notifications:", error);
       }
     })();
-  }, [role]);
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [role, registerToken]);
 
   useEffect(() => {
     if (!orders) return;
@@ -82,7 +81,7 @@ export default function OrdersScreen() {
 
   const pendingCount =
     orders?.filter((o) => o.status === "pending").length ?? 0;
-  const sections = useMemo(() => buildSections(orders ?? []), [orders]);
+  const sections = useMemo(() => buildActiveSections(orders ?? []), [orders]);
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
