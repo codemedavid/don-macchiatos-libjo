@@ -1,16 +1,30 @@
+const path = require("path");
+
 /**
- * Jest is scoped to pure TypeScript logic modules only (lib/format, lib/sales,
- * lib/theme). React Native / Expo screens are verified on-device, not in Jest,
- * so we intentionally avoid the heavy jest-expo RN preset here.
+ * Jest is scoped to pure TypeScript logic modules only — mobile/lib/* plus the
+ * Convex-side pure helpers in convex/lib/*. React Native / Expo screens and
+ * Convex query handlers are verified on-device, not in Jest, so we
+ * intentionally avoid the heavy jest-expo RN preset here.
+ *
+ * `rootDir` is the repo root so convex/lib modules are inside the coverage
+ * scope; `roots` keeps test discovery confined to mobile/__tests__.
  */
 module.exports = {
+  rootDir: path.join(__dirname, ".."),
+  roots: ["<rootDir>/mobile/__tests__"],
   testEnvironment: "node",
   testMatch: ["**/__tests__/**/*.test.ts"],
   transform: {
+    // Resolved from this file, not <rootDir> — ts-jest lives in mobile/node_modules.
     "^.+\\.ts$": [
-      "ts-jest",
-      { tsconfig: "tsconfig.test.json" },
+      require.resolve("ts-jest"),
+      { tsconfig: path.join(__dirname, "tsconfig.test.json") },
     ],
   },
-  collectCoverageFrom: ["lib/format.ts", "lib/sales.ts", "lib/theme.ts"],
+  collectCoverageFrom: [
+    "mobile/lib/format.ts",
+    "mobile/lib/sales.ts",
+    "mobile/lib/theme.ts",
+    "convex/lib/orderHistory.ts",
+  ],
 };
