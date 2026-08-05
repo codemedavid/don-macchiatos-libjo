@@ -1,22 +1,23 @@
 import { useState } from "react";
 import {
   View,
-  Text,
   TextInput,
-  TouchableOpacity,
   Alert,
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth, UserRole } from "../lib/auth";
+import { AppText, Button, Pill } from "../components/ui";
+import { colors, fonts, radius, spacing } from "../lib/theme";
+
+const VALID_PASSWORD = "DonMacchiatos2026@";
 
 export default function LoginScreen() {
   const [password, setPassword] = useState("");
   const [selectedRole, setSelectedRole] = useState<UserRole>("staff");
   const { login } = useAuth();
-
-  const VALID_PASSWORD = "DonMacchiatos2026@";
 
   const handleLogin = async () => {
     if (password !== VALID_PASSWORD) {
@@ -27,133 +28,77 @@ export default function LoginScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
-      <View style={styles.inner}>
-        <Text style={styles.title}>Don Macchiatos</Text>
-        <Text style={styles.subtitle}>Order Management</Text>
+    <SafeAreaView style={styles.container}>
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
+        <View style={styles.inner}>
+          <AppText variant="display" style={styles.title}>
+            Don Macchiatos
+          </AppText>
+          <AppText variant="muted" style={styles.subtitle}>
+            Order Management
+          </AppText>
 
-        <View style={styles.roleSelector}>
-          <TouchableOpacity
-            style={[
-              styles.roleButton,
-              selectedRole === "staff" && styles.roleButtonActive,
-            ]}
-            onPress={() => setSelectedRole("staff")}
-          >
-            <Text
-              style={[
-                styles.roleButtonText,
-                selectedRole === "staff" && styles.roleButtonTextActive,
-              ]}
-            >
-              Staff
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.roleButton,
-              selectedRole === "owner" && styles.roleButtonActive,
-            ]}
-            onPress={() => setSelectedRole("owner")}
-          >
-            <Text
-              style={[
-                styles.roleButtonText,
-                selectedRole === "owner" && styles.roleButtonTextActive,
-              ]}
-            >
-              Owner
-            </Text>
-          </TouchableOpacity>
+          <View style={styles.roleSelector}>
+            <Pill
+              label="Staff"
+              active={selectedRole === "staff"}
+              onPress={() => setSelectedRole("staff")}
+              style={styles.rolePill}
+            />
+            <Pill
+              label="Owner"
+              active={selectedRole === "owner"}
+              onPress={() => setSelectedRole("owner")}
+              style={styles.rolePill}
+            />
+          </View>
+
+          <TextInput
+            style={styles.input}
+            placeholder="Enter password"
+            placeholderTextColor={colors.textFaint}
+            secureTextEntry
+            value={password}
+            onChangeText={setPassword}
+            autoCapitalize="none"
+          />
+
+          <Button label="Login" onPress={handleLogin} />
         </View>
-
-        <TextInput
-          style={styles.input}
-          placeholder="Enter password"
-          placeholderTextColor="#999"
-          secureTextEntry
-          value={password}
-          onChangeText={setPassword}
-          autoCapitalize="none"
-        />
-
-        <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-          <Text style={styles.loginButtonText}>Login</Text>
-        </TouchableOpacity>
-      </View>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#1a1a1a",
-  },
+  container: { flex: 1, backgroundColor: colors.screenBg },
+  flex: { flex: 1 },
   inner: {
     flex: 1,
     justifyContent: "center",
-    paddingHorizontal: 32,
+    paddingHorizontal: spacing.xl,
   },
-  title: {
-    fontSize: 32,
-    fontWeight: "bold",
-    color: "#fff",
-    textAlign: "center",
-    marginBottom: 4,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: "#999",
-    textAlign: "center",
-    marginBottom: 40,
-  },
+  title: { fontSize: 34, textAlign: "center", marginBottom: 4 },
+  subtitle: { textAlign: "center", marginBottom: spacing.xl + 8 },
   roleSelector: {
     flexDirection: "row",
-    marginBottom: 24,
-    gap: 12,
+    marginBottom: spacing.lg,
+    gap: spacing.sm + 4,
   },
-  roleButton: {
-    flex: 1,
-    paddingVertical: 14,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: "#333",
-    alignItems: "center",
-  },
-  roleButtonActive: {
-    borderColor: "#fff",
-    backgroundColor: "#fff",
-  },
-  roleButtonText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#999",
-  },
-  roleButtonTextActive: {
-    color: "#1a1a1a",
-  },
+  rolePill: { flex: 1, alignItems: "center", paddingVertical: 14 },
   input: {
-    backgroundColor: "#2a2a2a",
-    borderRadius: 12,
-    paddingHorizontal: 16,
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.button,
+    paddingHorizontal: spacing.md,
     paddingVertical: 14,
     fontSize: 16,
-    color: "#fff",
-    marginBottom: 16,
-  },
-  loginButton: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    paddingVertical: 16,
-    alignItems: "center",
-  },
-  loginButtonText: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#1a1a1a",
+    fontFamily: fonts.body,
+    color: colors.textPrimary,
+    marginBottom: spacing.md,
   },
 });

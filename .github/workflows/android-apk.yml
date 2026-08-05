@@ -1,0 +1,81 @@
+name: Build Android APK
+
+# Runs the EAS build on the GitHub runner (`--local`) rather than on Expo's
+# build servers, so it does not consume the account's monthly EAS Build quota.
+# Credentials are still pulled from EAS, which keeps the APK signed with the
+# existing keystore — installs land as an update, not a conflicting app.
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+concurrency:
+  group: android-apk-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build preview APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: mobile
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      # The `secrets` context is not available in a step-level `if`, so the
+      # check has to happen inside the script with the value mapped to env.
+      - name: Fail early if EXPO_TOKEN is missing
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          if [ -z "$EXPO_TOKEN" ]; then
+            echo "::error::EXPO_TOKEN secret is not set. Create a token at https://expo.dev/settings/access-tokens and add it under Settings -> Secrets and variables -> Actions."
+            exit 1
+          fi
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Set up the Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
+      - name: Build the APK
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          npx eas-cli@latest build \
+            --platform android \
+            --profile preview \
+            --local \
+            --non-interactive \
+            --output "${{ runner.temp }}/don-macchiatos-orders.apk"
+
+      - name: Upload the APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: don-macchiatos-orders-${{ github.sha }}
+          path: ${{ runner.temp }}/don-macchiatos-orders.apk
+          if-no-files-found: error
+          retention-days: 30

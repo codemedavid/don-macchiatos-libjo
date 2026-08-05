@@ -1,15 +1,13 @@
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  Alert,
-  StyleSheet,
-} from "react-native";
+import { View, ScrollView, Pressable, Alert, StyleSheet } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { StatusBadge } from "../../components/StatusBadge";
+import { Card, AppText, Button } from "../../components/ui";
+import { colors, fonts, spacing } from "../../lib/theme";
+import { formatCurrency } from "../../lib/format";
 
 const STATUS_FLOW: Record<string, string> = {
   pending: "confirmed",
@@ -28,40 +26,43 @@ const ACTION_LABELS: Record<string, string> = {
 export default function OrderDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const order = useQuery(api.orders.getOrderById, {
-    orderId: id as any,
-  });
+  const order = useQuery(api.orders.getOrderById, { orderId: id as any });
   const updateStatus = useMutation(api.orders.updateOrderStatus);
 
   if (!order) {
     return (
-      <View style={styles.center}>
-        <Text style={styles.loadingText}>Loading order...</Text>
-      </View>
+      <SafeAreaView style={styles.center}>
+        <AppText variant="muted">Loading order…</AppText>
+      </SafeAreaView>
     );
   }
 
   const nextStatus = STATUS_FLOW[order.status];
   const actionLabel = ACTION_LABELS[order.status];
+  const isClosed = ["completed", "cancelled"].includes(order.status);
+
+  // A rejected mutation used to disappear into an unhandled promise, leaving
+  // the button looking like it did nothing. Always surface the failure.
+  const applyStatus = async (status: string) => {
+    try {
+      await updateStatus({ orderId: id as any, status: status as any });
+      return true;
+    } catch (error) {
+      console.warn("Failed to update order status:", error);
+      Alert.alert(
+        "Update Failed",
+        "The order status could not be updated. Check your connection and try again."
+      );
+      return false;
+    }
+  };
 
   const handleStatusUpdate = () => {
     if (!nextStatus) return;
-    Alert.alert(
-      "Update Status",
-      `Change order status to "${nextStatus}"?`,
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Confirm",
-          onPress: async () => {
-            await updateStatus({
-              orderId: id as any,
-              status: nextStatus as any,
-            });
-          },
-        },
-      ]
-    );
+    Alert.alert("Update Status", `Change order status to "${nextStatus}"?`, [
+      { text: "Cancel", style: "cancel" },
+      { text: "Confirm", onPress: () => void applyStatus(nextStatus) },
+    ]);
   };
 
   const handleCancel = () => {
@@ -71,18 +72,13 @@ export default function OrderDetailScreen() {
         text: "Yes, Cancel",
         style: "destructive",
         onPress: async () => {
-          await updateStatus({
-            orderId: id as any,
-            status: "cancelled",
-          });
-          router.back();
+          if (await applyStatus("cancelled")) router.back();
         },
       },
     ]);
   };
 
-  const date = new Date(order.createdAt);
-  const formattedDate = date.toLocaleDateString("en-PH", {
+  const formattedDate = new Date(order.createdAt).toLocaleDateString("en-PH", {
     year: "numeric",
     month: "short",
     day: "numeric",
@@ -91,200 +87,189 @@ export default function OrderDetailScreen() {
   });
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Text style={styles.backButton}>← Back</Text>
-        </TouchableOpacity>
-        <Text style={styles.orderNumber}>{order.orderNumber}</Text>
-        <StatusBadge status={order.status} />
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Customer Details</Text>
-        <DetailRow
-          label="Name"
-          value={order.customerName || "Walk-in Customer"}
-        />
-        <DetailRow
-          label="Contact"
-          value={order.contactNumber || "Not provided"}
-        />
-        <DetailRow
-          label="Service"
-          value={
-            order.serviceType.charAt(0).toUpperCase() +
-            order.serviceType.slice(1)
-          }
-        />
-        {order.address && (
-          <DetailRow label="Address" value={order.address} />
-        )}
-        {order.pickupTime && (
-          <DetailRow label="Pickup Time" value={order.pickupTime} />
-        )}
-        <DetailRow label="Payment" value={order.paymentMethod.toUpperCase()} />
-        {order.referenceNumber && (
-          <DetailRow label="Ref #" value={order.referenceNumber} />
-        )}
-        <DetailRow label="Ordered" value={formattedDate} />
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Order Items</Text>
-        {order.items.map((item, index) => (
-          <View key={index} style={styles.itemRow}>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.itemName}>
-                {item.name} x{item.quantity}
-              </Text>
-              {item.variations && item.variations.length > 0 && (
-                <Text style={styles.itemMeta}>
-                  {item.variations.map((v) => `${v.type}: ${v.name}`).join(", ")}
-                </Text>
-              )}
-              {item.servingPreference && (
-                <Text style={styles.itemMeta}>
-                  Serving: {item.servingPreference}
-                </Text>
-              )}
-              {item.addOns && item.addOns.length > 0 && (
-                <Text style={styles.itemMeta}>
-                  Add-ons: {item.addOns.join(", ")}
-                </Text>
-              )}
-            </View>
-            <Text style={styles.itemPrice}>
-              PHP {(item.totalPrice * item.quantity).toFixed(2)}
-            </Text>
-          </View>
-        ))}
-
-        {order.bundleItems?.map((bundle, index) => (
-          <View key={`bundle-${index}`} style={styles.bundleRow}>
-            <View style={styles.bundleHeader}>
-              <View style={styles.bundleBadge}>
-                <Text style={styles.bundleBadgeText}>BUNDLE</Text>
-              </View>
-              <Text style={styles.itemName}>
-                {bundle.bundleName} x{bundle.quantity}
-              </Text>
-            </View>
-            {bundle.items.map((item, i) => (
-              <Text key={i} style={styles.bundleItem}>
-                • {item.name}
-                {item.variations &&
-                  ` (${item.variations.map((v) => `${v.type}: ${v.name}`).join(", ")})`}
-              </Text>
-            ))}
-            <Text style={styles.itemPrice}>
-              PHP {(bundle.bundlePrice * bundle.quantity).toFixed(2)}
-            </Text>
-          </View>
-        ))}
-      </View>
-
-      {order.notes && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Special Instructions</Text>
-          <Text style={styles.notes}>{order.notes}</Text>
+    <SafeAreaView style={styles.container} edges={["top"]}>
+      <ScrollView contentContainerStyle={styles.scroll}>
+        <View style={styles.header}>
+          <Pressable onPress={() => router.back()} style={styles.backButton}>
+            <Ionicons name="chevron-back" size={20} color={colors.accent} />
+            <AppText variant="body" style={styles.backText}>
+              Back
+            </AppText>
+          </Pressable>
+          <AppText variant="display" style={styles.orderNumber}>
+            {order.orderNumber}
+          </AppText>
+          <StatusBadge status={order.status} />
         </View>
-      )}
 
-      <View style={styles.totalSection}>
-        <Text style={styles.totalLabel}>Total</Text>
-        <Text style={styles.totalValue}>PHP {order.total.toFixed(2)}</Text>
-      </View>
-
-      {!["completed", "cancelled"].includes(order.status) && (
-        <View style={styles.actions}>
-          {actionLabel && (
-            <TouchableOpacity
-              style={styles.primaryButton}
-              onPress={handleStatusUpdate}
-            >
-              <Text style={styles.primaryButtonText}>{actionLabel}</Text>
-            </TouchableOpacity>
+        <Card style={styles.section}>
+          <AppText variant="label" style={styles.sectionTitle}>
+            Customer Details
+          </AppText>
+          <DetailRow
+            label="Name"
+            value={order.customerName || "Walk-in Customer"}
+          />
+          <DetailRow
+            label="Contact"
+            value={order.contactNumber || "Not provided"}
+          />
+          <DetailRow
+            label="Service"
+            value={
+              order.serviceType.charAt(0).toUpperCase() +
+              order.serviceType.slice(1)
+            }
+          />
+          {order.address && <DetailRow label="Address" value={order.address} />}
+          {order.pickupTime && (
+            <DetailRow label="Pickup Time" value={order.pickupTime} />
           )}
-          <TouchableOpacity
-            style={styles.cancelButton}
-            onPress={handleCancel}
-          >
-            <Text style={styles.cancelButtonText}>Cancel Order</Text>
-          </TouchableOpacity>
-        </View>
-      )}
+          <DetailRow label="Payment" value={order.paymentMethod.toUpperCase()} />
+          {order.referenceNumber && (
+            <DetailRow label="Ref #" value={order.referenceNumber} />
+          )}
+          <DetailRow label="Ordered" value={formattedDate} />
+        </Card>
 
-      <View style={{ height: 40 }} />
-    </ScrollView>
+        <Card style={styles.section}>
+          <AppText variant="label" style={styles.sectionTitle}>
+            Order Items
+          </AppText>
+          {order.items.map((item, index) => (
+            <View key={index} style={styles.itemRow}>
+              <View style={styles.itemInfo}>
+                <AppText variant="heading">
+                  {item.name} ×{item.quantity}
+                </AppText>
+                {item.variations && item.variations.length > 0 && (
+                  <AppText variant="muted" style={styles.itemMeta}>
+                    {item.variations
+                      .map((v) => `${v.type}: ${v.name}`)
+                      .join(", ")}
+                  </AppText>
+                )}
+                {item.servingPreference && (
+                  <AppText variant="muted" style={styles.itemMeta}>
+                    Serving: {item.servingPreference}
+                  </AppText>
+                )}
+                {item.addOns && item.addOns.length > 0 && (
+                  <AppText variant="muted" style={styles.itemMeta}>
+                    Add-ons: {item.addOns.join(", ")}
+                  </AppText>
+                )}
+              </View>
+              <AppText variant="price">
+                {formatCurrency(item.totalPrice * item.quantity)}
+              </AppText>
+            </View>
+          ))}
+
+          {order.bundleItems?.map((bundle, index) => (
+            <View key={`bundle-${index}`} style={styles.itemRow}>
+              <View style={styles.itemInfo}>
+                <View style={styles.bundleHeader}>
+                  <View style={styles.bundleBadge}>
+                    <AppText style={styles.bundleBadgeText}>BUNDLE</AppText>
+                  </View>
+                  <AppText variant="heading">
+                    {bundle.bundleName} ×{bundle.quantity}
+                  </AppText>
+                </View>
+                {bundle.items.map((item, i) => (
+                  <AppText key={i} variant="muted" style={styles.bundleItem}>
+                    • {item.name}
+                    {item.variations &&
+                      ` (${item.variations
+                        .map((v) => `${v.type}: ${v.name}`)
+                        .join(", ")})`}
+                  </AppText>
+                ))}
+              </View>
+              <AppText variant="price">
+                {formatCurrency(bundle.bundlePrice * bundle.quantity)}
+              </AppText>
+            </View>
+          ))}
+        </Card>
+
+        {order.notes && (
+          <Card style={styles.section}>
+            <AppText variant="label" style={styles.sectionTitle}>
+              Special Instructions
+            </AppText>
+            <AppText variant="body" style={styles.notes}>
+              {order.notes}
+            </AppText>
+          </Card>
+        )}
+
+        <Card style={[styles.section, styles.totalSection]}>
+          <AppText variant="title">Total</AppText>
+          <AppText style={styles.totalValue}>
+            {formatCurrency(order.total)}
+          </AppText>
+        </Card>
+
+        {!isClosed && (
+          <View style={styles.actions}>
+            {actionLabel && (
+              <Button label={actionLabel} onPress={handleStatusUpdate} />
+            )}
+            <Button
+              label="Cancel Order"
+              variant="danger"
+              onPress={handleCancel}
+            />
+          </View>
+        )}
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 function DetailRow({ label, value }: { label: string; value: string }) {
   return (
     <View style={styles.detailRow}>
-      <Text style={styles.detailLabel}>{label}</Text>
-      <Text style={styles.detailValue}>{value}</Text>
+      <AppText variant="muted">{label}</AppText>
+      <AppText variant="body" style={styles.detailValue}>
+        {value}
+      </AppText>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#1a1a1a",
-  },
+  container: { flex: 1, backgroundColor: colors.screenBg },
+  scroll: { paddingBottom: spacing.xl },
   center: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#1a1a1a",
+    backgroundColor: colors.screenBg,
   },
-  loadingText: {
-    color: "#999",
-    fontSize: 16,
-  },
-  header: {
-    padding: 16,
-    gap: 8,
-  },
+  header: { padding: spacing.md, gap: spacing.sm },
   backButton: {
-    color: "#60A5FA",
-    fontSize: 16,
-    marginBottom: 8,
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: spacing.xs,
   },
-  orderNumber: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#fff",
-  },
+  backText: { color: colors.accent, fontFamily: fonts.bodyMedium },
+  orderNumber: { fontSize: 28 },
   section: {
-    backgroundColor: "#2a2a2a",
-    marginHorizontal: 16,
-    marginBottom: 12,
-    borderRadius: 12,
-    padding: 16,
+    marginHorizontal: spacing.md,
+    marginBottom: spacing.sm + 4,
   },
-  sectionTitle: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#999",
-    textTransform: "uppercase",
-    marginBottom: 12,
-  },
+  sectionTitle: { marginBottom: spacing.sm + 4 },
   detailRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     paddingVertical: 6,
   },
-  detailLabel: {
-    fontSize: 14,
-    color: "#999",
-  },
   detailValue: {
-    fontSize: 14,
-    color: "#fff",
-    fontWeight: "500",
+    color: colors.textPrimary,
+    fontFamily: fonts.bodyMedium,
     maxWidth: "60%",
     textAlign: "right",
   },
@@ -292,103 +277,40 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
-    paddingVertical: 8,
+    paddingVertical: spacing.sm,
     borderBottomWidth: 1,
-    borderBottomColor: "#333",
+    borderBottomColor: colors.border,
   },
-  itemName: {
-    fontSize: 15,
-    color: "#fff",
-    fontWeight: "600",
-  },
-  itemMeta: {
-    fontSize: 13,
-    color: "#999",
-    marginTop: 2,
-  },
-  itemPrice: {
-    fontSize: 15,
-    color: "#4ADE80",
-    fontWeight: "600",
-  },
-  bundleRow: {
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: "#333",
-  },
+  itemInfo: { flex: 1, paddingRight: spacing.sm },
+  itemMeta: { marginTop: 2 },
   bundleHeader: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
-    marginBottom: 4,
+    gap: spacing.sm,
+    marginBottom: spacing.xs,
   },
   bundleBadge: {
-    backgroundColor: "#fff",
+    backgroundColor: colors.primary,
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
   },
   bundleBadgeText: {
+    fontFamily: fonts.bodySemiBold,
     fontSize: 10,
-    fontWeight: "bold",
-    color: "#1a1a1a",
+    color: colors.onPrimary,
   },
-  bundleItem: {
-    fontSize: 13,
-    color: "#999",
-    marginLeft: 8,
-    marginTop: 2,
-  },
-  notes: {
-    fontSize: 14,
-    color: "#fff",
-    lineHeight: 20,
-  },
+  bundleItem: { marginLeft: spacing.sm, marginTop: 2 },
+  notes: { color: colors.textPrimary, lineHeight: 20 },
   totalSection: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginHorizontal: 16,
-    marginBottom: 12,
-    backgroundColor: "#2a2a2a",
-    borderRadius: 12,
-    padding: 16,
-  },
-  totalLabel: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#fff",
   },
   totalValue: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#4ADE80",
+    fontFamily: fonts.headline,
+    fontSize: 26,
+    color: colors.textPrimary,
   },
-  actions: {
-    paddingHorizontal: 16,
-    gap: 12,
-  },
-  primaryButton: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    paddingVertical: 16,
-    alignItems: "center",
-  },
-  primaryButtonText: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#1a1a1a",
-  },
-  cancelButton: {
-    borderRadius: 12,
-    paddingVertical: 14,
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#EF4444",
-  },
-  cancelButtonText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#EF4444",
-  },
+  actions: { paddingHorizontal: spacing.md, gap: spacing.sm + 4 },
 });

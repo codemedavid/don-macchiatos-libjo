@@ -1,35 +1,71 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   View,
-  Text,
-  FlatList,
+  SectionList,
   StyleSheet,
-  TouchableOpacity,
+  Pressable,
+  ScrollView,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useQuery, useMutation } from "convex/react";
+import * as Haptics from "expo-haptics";
 import { api } from "../../../convex/_generated/api";
 import { OrderCard } from "../../components/OrderCard";
+import { AppText, Pill } from "../../components/ui";
+import { colors, fonts, spacing } from "../../lib/theme";
 import {
   registerForPushNotifications,
   playNewOrderSound,
 } from "../../lib/notifications";
 import { useAuth } from "../../lib/auth";
+import {
+  ACTIVE_FILTERS,
+  ActiveFilterKey,
+  activeFilterCounts,
+  buildActiveSections,
+} from "../../lib/orderFilters";
+
+interface ActiveOrder {
+  _id: string;
+  orderNumber: string;
+  customerName: string;
+  contactNumber: string;
+  serviceType: string;
+  total: number;
+  status: string;
+  items: { name: string; quantity: number }[];
+  createdAt: number;
+}
 
 export default function OrdersScreen() {
-  const orders = useQuery(api.orders.getActiveOrders);
+  const orders = useQuery(api.orders.getActiveOrders) as
+    | ActiveOrder[]
+    | undefined;
   const registerToken = useMutation(api.notifications.registerPushToken);
   const { role, logout } = useAuth();
+  const [filter, setFilter] = useState<ActiveFilterKey>("all");
   const prevOrderIdsRef = useRef<Set<string>>(new Set());
   const isInitialLoadRef = useRef(true);
 
   useEffect(() => {
+    let isCancelled = false;
+
     (async () => {
-      const token = await registerForPushNotifications();
-      if (token && role) {
+      try {
+        const token = await registerForPushNotifications();
+        if (isCancelled || !token || !role) return;
         await registerToken({ token, role });
+      } catch (error) {
+        // Push is a convenience here — orders still arrive over the live query,
+        // so a failed registration must not take the screen down.
+        console.warn("Failed to register for push notifications:", error);
       }
     })();
-  }, [role]);
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [role, registerToken]);
 
   useEffect(() => {
     if (!orders) return;
@@ -45,6 +81,9 @@ export default function OrdersScreen() {
     for (const id of currentIds) {
       if (!prevOrderIdsRef.current.has(id)) {
         playNewOrderSound();
+        Haptics.notificationAsync(
+          Haptics.NotificationFeedbackType.Success
+        ).catch(() => {});
         break;
       }
     }
@@ -52,104 +91,122 @@ export default function OrdersScreen() {
     prevOrderIdsRef.current = currentIds;
   }, [orders]);
 
-  const pendingCount =
-    orders?.filter((o) => o.status === "pending").length ?? 0;
+  const counts = useMemo(() => activeFilterCounts(orders ?? []), [orders]);
+  const sections = useMemo(
+    () => buildActiveSections(orders ?? [], filter),
+    [orders, filter]
+  );
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={["top"]}>
       <View style={styles.headerRow}>
         <View>
-          <Text style={styles.title}>Active Orders</Text>
-          {pendingCount > 0 && (
-            <Text style={styles.pendingBadge}>
-              {pendingCount} pending
-            </Text>
-          )}
+          <AppText variant="display">Active Orders</AppText>
+          <AppText variant="muted" style={styles.pendingBadge}>
+            {counts.new > 0 ? `${counts.new} pending` : "All caught up"}
+          </AppText>
         </View>
-        <TouchableOpacity onPress={logout} style={styles.logoutButton}>
-          <Text style={styles.logoutText}>Logout</Text>
-        </TouchableOpacity>
+        <Pressable
+          onPress={logout}
+          style={({ pressed }) => [
+            styles.logoutButton,
+            pressed && styles.logoutPressed,
+          ]}
+        >
+          <AppText variant="muted" style={styles.logoutText}>
+            Logout
+          </AppText>
+        </Pressable>
       </View>
+
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.filtersScroll}
+        contentContainerStyle={styles.filters}
+      >
+        {ACTIVE_FILTERS.map((f) => (
+          <Pill
+            key={f.key}
+            label={`${f.label} · ${counts[f.key]}`}
+            active={filter === f.key}
+            onPress={() => setFilter(f.key)}
+          />
+        ))}
+      </ScrollView>
 
       {!orders ? (
         <View style={styles.center}>
-          <Text style={styles.loadingText}>Loading orders...</Text>
+          <AppText variant="muted">Loading orders…</AppText>
         </View>
-      ) : orders.length === 0 ? (
+      ) : sections.length === 0 ? (
         <View style={styles.center}>
-          <Text style={styles.emptyText}>No active orders</Text>
-          <Text style={styles.emptySubtext}>
-            New orders will appear here in real-time
-          </Text>
+          <AppText variant="title" style={styles.emptyTitle}>
+            {counts.all === 0 ? "No active orders" : "Nothing in this filter"}
+          </AppText>
+          <AppText variant="muted" style={styles.emptySubtext}>
+            {counts.all === 0
+              ? "New orders appear here in real time"
+              : `${counts.all} active order${
+                  counts.all === 1 ? "" : "s"
+                } under “All”`}
+          </AppText>
         </View>
       ) : (
-        <FlatList
-          data={orders}
+        <SectionList
+          sections={sections}
           keyExtractor={(item) => item._id}
           renderItem={({ item }) => <OrderCard order={item} />}
+          renderSectionHeader={({ section }) => (
+            <AppText variant="label" style={styles.sectionHeader}>
+              {section.title} · {section.data.length}
+            </AppText>
+          )}
           contentContainerStyle={styles.list}
+          stickySectionHeadersEnabled={false}
           showsVerticalScrollIndicator={false}
         />
       )}
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#1a1a1a",
-  },
+  container: { flex: 1, backgroundColor: colors.screenBg },
   headerRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.sm,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#fff",
-  },
-  pendingBadge: {
-    fontSize: 14,
-    color: "#F59E0B",
-    fontWeight: "600",
-    marginTop: 2,
-  },
+  pendingBadge: { color: colors.warning, marginTop: 2, fontFamily: fonts.bodyMedium },
   logoutButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: 10,
     borderWidth: 1,
-    borderColor: "#444",
+    borderColor: colors.border,
+    backgroundColor: colors.card,
   },
-  logoutText: {
-    color: "#999",
-    fontSize: 14,
+  logoutPressed: { opacity: 0.7 },
+  logoutText: { color: colors.textSecondary },
+  // A horizontal ScrollView stretches to fill a flex column by default; pin it
+  // to its content height so the list below keeps the remaining space.
+  filtersScroll: { flexGrow: 0, flexShrink: 0 },
+  filters: {
+    flexDirection: "row",
+    paddingHorizontal: spacing.md,
+    paddingBottom: spacing.sm + 4,
+    gap: spacing.sm,
   },
-  center: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+  center: { flex: 1, justifyContent: "center", alignItems: "center" },
+  emptyTitle: { marginBottom: 4 },
+  emptySubtext: {},
+  sectionHeader: {
+    marginTop: spacing.md,
+    marginBottom: spacing.sm,
   },
-  loadingText: {
-    color: "#999",
-    fontSize: 16,
-  },
-  emptyText: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "600",
-  },
-  emptySubtext: {
-    color: "#666",
-    fontSize: 14,
-    marginTop: 4,
-  },
-  list: {
-    paddingHorizontal: 16,
-    paddingBottom: 20,
-  },
+  list: { paddingHorizontal: spacing.md, paddingBottom: spacing.lg },
 });

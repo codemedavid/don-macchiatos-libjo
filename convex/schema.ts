@@ -63,6 +63,9 @@ export default defineSchema({
     ),
     createdAt: v.number(),
     updatedAt: v.number(),
+    // Set when the order reaches a closed status (completed/cancelled).
+    // Optional because rows predating this field have no closing time.
+    completedAt: v.optional(v.number()),
   })
     .index("by_status", ["status"])
     .index("by_createdAt", ["createdAt"]),

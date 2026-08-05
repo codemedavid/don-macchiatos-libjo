@@ -1,16 +1,8 @@
 import { View, Text, StyleSheet } from "react-native";
-
-const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
-  pending: { bg: "#FEF3C7", text: "#92400E" },
-  confirmed: { bg: "#DBEAFE", text: "#1E40AF" },
-  preparing: { bg: "#E0E7FF", text: "#3730A3" },
-  ready: { bg: "#D1FAE5", text: "#065F46" },
-  completed: { bg: "#E5E7EB", text: "#374151" },
-  cancelled: { bg: "#FEE2E2", text: "#991B1B" },
-};
+import { fonts, radius, statusColors } from "../lib/theme";
 
 export function StatusBadge({ status }: { status: string }) {
-  const colors = STATUS_COLORS[status] || STATUS_COLORS.pending;
+  const colors = statusColors[status] || statusColors.pending;
 
   return (
     <View style={[styles.badge, { backgroundColor: colors.bg }]}>
@@ -25,11 +17,12 @@ const styles = StyleSheet.create({
   badge: {
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 12,
+    borderRadius: radius.badge,
     alignSelf: "flex-start",
   },
   text: {
+    fontFamily: fonts.bodySemiBold,
     fontSize: 12,
-    fontWeight: "700",
+    letterSpacing: 0.3,
   },
 });

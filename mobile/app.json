@@ -11,7 +11,7 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#1a1a1a"
+      "backgroundColor": "#faf8f5"
     },
     "ios": {
       "supportsTablet": true
@@ -19,7 +19,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#1a1a1a"
+        "backgroundColor": "#faf8f5"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
@@ -34,15 +34,23 @@
       [
         "expo-notifications",
         {
-          "sounds": ["./assets/sounds/ringtone.mp3"]
+          "sounds": [
+            "./assets/sounds/ringtone.mp3"
+          ]
         }
-      ]
+      ],
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true
     },
     "extra": {
-      "CONVEX_URL": "https://outgoing-caribou-63.convex.cloud"
-    }
+      "CONVEX_URL": "https://outgoing-caribou-63.convex.cloud",
+      "router": {},
+      "eas": {
+        "projectId": "bfc54edc-ed52-4c27-8071-fe5f0baba9fc"
+      }
+    },
+    "owner": "itscodemedavid"
   }
 }
