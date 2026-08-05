@@ -21,6 +21,8 @@ module.exports = {
       { tsconfig: path.join(__dirname, "tsconfig.test.json") },
     ],
   },
+  // Keep reports in mobile/coverage despite the repo-root rootDir.
+  coverageDirectory: path.join(__dirname, "coverage"),
   collectCoverageFrom: [
     "mobile/lib/format.ts",
     "mobile/lib/sales.ts",

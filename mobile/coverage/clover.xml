@@ -1,47 +1,81 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1784211403944" clover="3.2.0">
-  <project timestamp="1784211403944" name="All files">
-    <metrics statements="35" coveredstatements="35" conditionals="13" coveredconditionals="11" methods="8" coveredmethods="8" elements="56" coveredelements="54" complexity="0" loc="35" ncloc="35" packages="1" files="2" classes="2"/>
-    <file name="format.ts" path="/Users/codemedavid/Documents/don-macchiatos/beracah-cafe/mobile/lib/format.ts">
-      <metrics statements="20" coveredstatements="20" conditionals="10" coveredconditionals="8" methods="3" coveredmethods="3"/>
-      <line num="6" count="1" type="stmt"/>
-      <line num="7" count="1" type="stmt"/>
-      <line num="8" count="1" type="stmt"/>
-      <line num="10" count="1" type="cond" truecount="0" falsecount="1"/>
-      <line num="11" count="5" type="stmt"/>
-      <line num="12" count="5" type="cond" truecount="1" falsecount="0"/>
-      <line num="13" count="3" type="cond" truecount="1" falsecount="0"/>
-      <line num="14" count="2" type="cond" truecount="1" falsecount="0"/>
-      <line num="15" count="1" type="stmt"/>
-      <line num="18" count="1" type="stmt"/>
-      <line num="19" count="3" type="stmt"/>
-      <line num="29" count="1" type="stmt"/>
-      <line num="33" count="4" type="stmt"/>
-      <line num="34" count="4" type="stmt"/>
-      <line num="36" count="4" type="cond" truecount="5" falsecount="0"/>
-      <line num="38" count="1" type="stmt"/>
-      <line num="43" count="1" type="stmt"/>
-      <line num="46" count="1" type="stmt"/>
-      <line num="48" count="1" type="stmt"/>
-      <line num="51" count="1" type="stmt"/>
-    </file>
-    <file name="sales.ts" path="/Users/codemedavid/Documents/don-macchiatos/beracah-cafe/mobile/lib/sales.ts">
-      <metrics statements="15" coveredstatements="15" conditionals="3" coveredconditionals="3" methods="5" coveredmethods="5"/>
-      <line num="33" count="18" type="cond" truecount="1" falsecount="0"/>
-      <line num="34" count="10" type="stmt"/>
-      <line num="36" count="18" type="stmt"/>
-      <line num="37" count="18" type="stmt"/>
-      <line num="40" count="1" type="stmt"/>
-      <line num="41" count="12" type="stmt"/>
-      <line num="42" count="9" type="stmt"/>
-      <line num="43" count="5" type="stmt"/>
-      <line num="45" count="5" type="stmt"/>
-      <line num="46" count="5" type="stmt"/>
-      <line num="47" count="5" type="stmt"/>
-      <line num="48" count="9" type="stmt"/>
-      <line num="49" count="9" type="stmt"/>
-      <line num="52" count="5" type="stmt"/>
-      <line num="56" count="12" type="stmt"/>
-    </file>
+<coverage generated="1785907795916" clover="3.2.0">
+  <project timestamp="1785907795916" name="All files">
+    <metrics statements="57" coveredstatements="57" conditionals="25" coveredconditionals="23" methods="14" coveredmethods="14" elements="96" coveredelements="94" complexity="0" loc="57" ncloc="57" packages="2" files="4" classes="4"/>
+    <package name="convex.lib">
+      <metrics statements="16" coveredstatements="16" conditionals="12" coveredconditionals="12" methods="6" coveredmethods="6"/>
+      <file name="orderHistory.ts" path="/Users/codemedavid/Documents/don-macchiatos/beracah-cafe/convex/lib/orderHistory.ts">
+        <metrics statements="16" coveredstatements="16" conditionals="12" coveredconditionals="12" methods="6" coveredmethods="6"/>
+        <line num="6" count="1" type="stmt"/>
+        <line num="20" count="1" type="stmt"/>
+        <line num="21" count="29" type="stmt"/>
+        <line num="31" count="1" type="stmt"/>
+        <line num="32" count="32" type="cond" truecount="2" falsecount="0"/>
+        <line num="35" count="1" type="stmt"/>
+        <line num="39" count="9" type="stmt"/>
+        <line num="41" count="9" type="stmt"/>
+        <line num="43" count="18" type="cond" truecount="1" falsecount="0"/>
+        <line num="44" count="14" type="stmt"/>
+        <line num="45" count="14" type="cond" truecount="3" falsecount="0"/>
+        <line num="46" count="13" type="cond" truecount="3" falsecount="0"/>
+        <line num="47" count="12" type="stmt"/>
+        <line num="50" count="8" type="stmt"/>
+        <line num="63" count="1" type="stmt"/>
+        <line num="67" count="5" type="cond" truecount="2" falsecount="0"/>
+      </file>
+    </package>
+    <package name="mobile.lib">
+      <metrics statements="41" coveredstatements="41" conditionals="13" coveredconditionals="11" methods="8" coveredmethods="8"/>
+      <file name="format.ts" path="/Users/codemedavid/Documents/don-macchiatos/beracah-cafe/mobile/lib/format.ts">
+        <metrics statements="20" coveredstatements="20" conditionals="10" coveredconditionals="8" methods="3" coveredmethods="3"/>
+        <line num="6" count="1" type="stmt"/>
+        <line num="7" count="1" type="stmt"/>
+        <line num="8" count="1" type="stmt"/>
+        <line num="10" count="1" type="cond" truecount="0" falsecount="1"/>
+        <line num="11" count="5" type="stmt"/>
+        <line num="12" count="5" type="cond" truecount="1" falsecount="0"/>
+        <line num="13" count="3" type="cond" truecount="1" falsecount="0"/>
+        <line num="14" count="2" type="cond" truecount="1" falsecount="0"/>
+        <line num="15" count="1" type="stmt"/>
+        <line num="18" count="1" type="stmt"/>
+        <line num="19" count="3" type="stmt"/>
+        <line num="29" count="1" type="stmt"/>
+        <line num="33" count="4" type="stmt"/>
+        <line num="34" count="4" type="stmt"/>
+        <line num="36" count="4" type="cond" truecount="5" falsecount="0"/>
+        <line num="38" count="1" type="stmt"/>
+        <line num="43" count="1" type="stmt"/>
+        <line num="46" count="1" type="stmt"/>
+        <line num="48" count="1" type="stmt"/>
+        <line num="51" count="1" type="stmt"/>
+      </file>
+      <file name="sales.ts" path="/Users/codemedavid/Documents/don-macchiatos/beracah-cafe/mobile/lib/sales.ts">
+        <metrics statements="15" coveredstatements="15" conditionals="3" coveredconditionals="3" methods="5" coveredmethods="5"/>
+        <line num="33" count="18" type="cond" truecount="1" falsecount="0"/>
+        <line num="34" count="10" type="stmt"/>
+        <line num="36" count="18" type="stmt"/>
+        <line num="37" count="18" type="stmt"/>
+        <line num="40" count="1" type="stmt"/>
+        <line num="41" count="12" type="stmt"/>
+        <line num="42" count="9" type="stmt"/>
+        <line num="43" count="5" type="stmt"/>
+        <line num="45" count="5" type="stmt"/>
+        <line num="46" count="5" type="stmt"/>
+        <line num="47" count="5" type="stmt"/>
+        <line num="48" count="9" type="stmt"/>
+        <line num="49" count="9" type="stmt"/>
+        <line num="52" count="5" type="stmt"/>
+        <line num="56" count="12" type="stmt"/>
+      </file>
+      <file name="theme.ts" path="/Users/codemedavid/Documents/don-macchiatos/beracah-cafe/mobile/lib/theme.ts">
+        <metrics statements="6" coveredstatements="6" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="8" count="1" type="stmt"/>
+        <line num="37" count="1" type="stmt"/>
+        <line num="46" count="1" type="stmt"/>
+        <line num="54" count="1" type="stmt"/>
+        <line num="61" count="1" type="stmt"/>
+        <line num="69" count="1" type="stmt"/>
+      </file>
+    </package>
   </project>
 </coverage>
