@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Slot, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -62,20 +62,25 @@ export default function RootLayout() {
     return () => subscription.remove();
   }, [router]);
 
-  const authContext: AuthContextType = {
-    isAuthenticated,
-    role,
-    login: async (selectedRole: UserRole) => {
-      await saveAuth(selectedRole);
-      setRole(selectedRole);
-      setIsAuthenticated(true);
-    },
-    logout: async () => {
-      await clearAuth();
-      setRole(null);
-      setIsAuthenticated(false);
-    },
-  };
+  // Stable identity: a fresh context value on every render re-renders every
+  // consumer, including the tab navigator layout.
+  const authContext: AuthContextType = useMemo(
+    () => ({
+      isAuthenticated,
+      role,
+      login: async (selectedRole: UserRole) => {
+        await saveAuth(selectedRole);
+        setRole(selectedRole);
+        setIsAuthenticated(true);
+      },
+      logout: async () => {
+        await clearAuth();
+        setRole(null);
+        setIsAuthenticated(false);
+      },
+    }),
+    [isAuthenticated, role]
+  );
 
   if (isLoading || !fontsLoaded) return null;
 

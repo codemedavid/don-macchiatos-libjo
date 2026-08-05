@@ -6,7 +6,8 @@ import { api } from "../../../convex/_generated/api";
 import { SalesSummaryCard } from "../../components/SalesSummaryCard";
 import { Card, AppText, Pill } from "../../components/ui";
 import { colors, spacing } from "../../lib/theme";
-import { formatCurrency, getDateRange, DateFilter } from "../../lib/format";
+import { formatCurrency, DateFilter } from "../../lib/format";
+import { useDateRange } from "../../lib/useDateRange";
 import { computeSalesStats, SalesOrder } from "../../lib/sales";
 
 type Period = Extract<DateFilter, "today" | "week" | "month">;
@@ -19,7 +20,7 @@ const PERIODS: { key: Period; label: string }[] = [
 
 export default function SalesScreen() {
   const [period, setPeriod] = useState<Period>("today");
-  const { start, end } = getDateRange(period);
+  const { start, end } = useDateRange(period);
 
   const orders = useQuery(api.orders.getOrdersByDateRange, {
     startTime: start,

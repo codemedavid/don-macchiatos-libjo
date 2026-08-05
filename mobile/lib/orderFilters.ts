@@ -85,8 +85,8 @@ export function buildActiveSections<T extends FilterableOrder>(
  * including any that fall outside the named buckets, so the chip row can never
  * under-report what the staff are actually holding.
  */
-export function activeFilterCounts(
-  orders: readonly FilterableOrder[]
+export function activeFilterCounts<T extends FilterableOrder>(
+  orders: readonly T[]
 ): Record<ActiveFilterKey, number> {
   const countOf = (key: ActiveFilterKey) => {
     const statuses =
@@ -136,8 +136,8 @@ export function filterHistoryOrders<T extends SearchableOrder>(
   });
 }
 
-export function historyFilterCounts(
-  orders: readonly FilterableOrder[]
+export function historyFilterCounts<T extends FilterableOrder>(
+  orders: readonly T[]
 ): Record<HistoryFilterKey, number> {
   return {
     all: orders.length,

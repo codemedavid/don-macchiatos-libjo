@@ -25,6 +25,7 @@ module.exports = {
   coverageDirectory: path.join(__dirname, "coverage"),
   collectCoverageFrom: [
     "mobile/lib/format.ts",
+    "mobile/lib/orderFilters.ts",
     "mobile/lib/sales.ts",
     "mobile/lib/theme.ts",
     "convex/lib/orderHistory.ts",

@@ -13,7 +13,22 @@ Notifications.setNotificationHandler({
   }),
 });
 
+/**
+ * Resolves to an Expo push token, or `null` when push is unavailable.
+ *
+ * Never rejects: registration depends on OS permissions, device entitlements
+ * and a network round-trip, any of which can fail on a perfectly healthy
+ * install. Callers treat a missing token as "no push for this session" rather
+ * than an error, so failures are logged and swallowed here.
+ */
 export async function registerForPushNotifications(): Promise<string | null> {
+  // Web push needs `notification.vapidPublicKey` in app.json, which this app
+  // does not configure — it ships to iOS and Android only.
+  if (Platform.OS === "web") {
+    console.log("Push notifications are not configured for web");
+    return null;
+  }
+
   if (!Device.isDevice) {
     console.log("Push notifications require a physical device");
     return null;
@@ -42,9 +57,13 @@ export async function registerForPushNotifications(): Promise<string | null> {
     });
   }
 
-  const tokenData = await Notifications.getExpoPushTokenAsync();
-
-  return tokenData.data;
+  try {
+    const tokenData = await Notifications.getExpoPushTokenAsync();
+    return tokenData.data;
+  } catch (error) {
+    console.warn("Failed to obtain an Expo push token:", error);
+    return null;
+  }
 }
 
 let sound: Audio.Sound | null = null;

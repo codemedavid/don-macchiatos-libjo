@@ -45,7 +45,12 @@
       "typedRoutes": true
     },
     "extra": {
-      "CONVEX_URL": "https://outgoing-caribou-63.convex.cloud"
-    }
+      "CONVEX_URL": "https://outgoing-caribou-63.convex.cloud",
+      "router": {},
+      "eas": {
+        "projectId": "bfc54edc-ed52-4c27-8071-fe5f0baba9fc"
+      }
+    },
+    "owner": "itscodemedavid"
   }
 }

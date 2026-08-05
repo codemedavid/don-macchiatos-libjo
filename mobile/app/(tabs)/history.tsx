@@ -1,41 +1,56 @@
 import { useState, useMemo } from "react";
-import { View, FlatList, TextInput, StyleSheet } from "react-native";
+import {
+  View,
+  FlatList,
+  TextInput,
+  StyleSheet,
+  ScrollView,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { OrderCard } from "../../components/OrderCard";
 import { AppText, Pill } from "../../components/ui";
 import { colors, fonts, radius, spacing } from "../../lib/theme";
-import { DateFilter, getDateRange } from "../../lib/format";
+import { DateFilter } from "../../lib/format";
+import { useDateRange } from "../../lib/useDateRange";
+import {
+  HISTORY_FILTERS,
+  HistoryFilterKey,
+  filterHistoryOrders,
+  historyFilterCounts,
+} from "../../lib/orderFilters";
 
-const FILTERS: { key: DateFilter; label: string }[] = [
+const DATE_FILTERS: { key: DateFilter; label: string }[] = [
   { key: "today", label: "Today" },
   { key: "week", label: "Week" },
   { key: "month", label: "Month" },
-  { key: "all", label: "All" },
+  { key: "all", label: "All time" },
 ];
 
 export default function HistoryScreen() {
-  const [filter, setFilter] = useState<DateFilter>("today");
+  const [dateFilter, setDateFilter] = useState<DateFilter>("today");
+  const [statusFilter, setStatusFilter] = useState<HistoryFilterKey>("all");
   const [search, setSearch] = useState("");
 
-  const { start, end } = getDateRange(filter);
+  const { start, end } = useDateRange(dateFilter);
   const orders = useQuery(api.orders.getCompletedOrders, {
     startTime: start,
     endTime: end,
   });
 
-  const filteredOrders = useMemo(() => {
-    if (!orders) return [];
-    if (!search.trim()) return orders;
-    const q = search.toLowerCase();
-    return orders.filter(
-      (o) =>
-        o.orderNumber.toLowerCase().includes(q) ||
-        o.customerName.toLowerCase().includes(q) ||
-        o.contactNumber.includes(q)
-    );
-  }, [orders, search]);
+  // Counts describe the whole date window, so the chips still show what a
+  // different status filter would reveal.
+  const counts = useMemo(() => historyFilterCounts(orders ?? []), [orders]);
+
+  const filteredOrders = useMemo(
+    () =>
+      filterHistoryOrders(orders ?? [], {
+        status: statusFilter,
+        search,
+      }),
+    [orders, statusFilter, search]
+  );
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
@@ -51,16 +66,37 @@ export default function HistoryScreen() {
         onChangeText={setSearch}
       />
 
-      <View style={styles.filters}>
-        {FILTERS.map((f) => (
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.filtersScroll}
+        contentContainerStyle={styles.filters}
+      >
+        {DATE_FILTERS.map((f) => (
           <Pill
             key={f.key}
             label={f.label}
-            active={filter === f.key}
-            onPress={() => setFilter(f.key)}
+            active={dateFilter === f.key}
+            onPress={() => setDateFilter(f.key)}
           />
         ))}
-      </View>
+      </ScrollView>
+
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.filtersScroll}
+        contentContainerStyle={styles.statusFilters}
+      >
+        {HISTORY_FILTERS.map((f) => (
+          <Pill
+            key={f.key}
+            label={`${f.label} · ${counts[f.key]}`}
+            active={statusFilter === f.key}
+            onPress={() => setStatusFilter(f.key)}
+          />
+        ))}
+      </ScrollView>
 
       {!orders ? (
         <View style={styles.center}>
@@ -68,7 +104,11 @@ export default function HistoryScreen() {
         </View>
       ) : filteredOrders.length === 0 ? (
         <View style={styles.center}>
-          <AppText variant="muted">No orders found</AppText>
+          <AppText variant="muted">
+            {counts.all === 0
+              ? "No closed orders in this date range"
+              : "No orders match this filter"}
+          </AppText>
         </View>
       ) : (
         <FlatList
@@ -99,10 +139,20 @@ const styles = StyleSheet.create({
     fontFamily: fonts.body,
     color: colors.textPrimary,
   },
+  // A horizontal ScrollView stretches to fill a flex column by default; pin it
+  // to its content height so the list below keeps the remaining space.
+  filtersScroll: { flexGrow: 0, flexShrink: 0 },
   filters: {
     flexDirection: "row",
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm + 4,
+    paddingTop: spacing.sm + 4,
+    paddingBottom: spacing.sm,
+    gap: spacing.sm,
+  },
+  statusFilters: {
+    flexDirection: "row",
+    paddingHorizontal: spacing.md,
+    paddingBottom: spacing.sm + 4,
     gap: spacing.sm,
   },
   center: { flex: 1, justifyContent: "center", alignItems: "center" },

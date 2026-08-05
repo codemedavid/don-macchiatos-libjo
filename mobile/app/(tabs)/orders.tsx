@@ -1,18 +1,29 @@
-import { useEffect, useMemo, useRef } from "react";
-import { View, SectionList, StyleSheet, Pressable } from "react-native";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  View,
+  SectionList,
+  StyleSheet,
+  Pressable,
+  ScrollView,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useQuery, useMutation } from "convex/react";
 import * as Haptics from "expo-haptics";
 import { api } from "../../../convex/_generated/api";
 import { OrderCard } from "../../components/OrderCard";
-import { AppText } from "../../components/ui";
+import { AppText, Pill } from "../../components/ui";
 import { colors, fonts, spacing } from "../../lib/theme";
 import {
   registerForPushNotifications,
   playNewOrderSound,
 } from "../../lib/notifications";
 import { useAuth } from "../../lib/auth";
-import { buildActiveSections } from "../../lib/orderFilters";
+import {
+  ACTIVE_FILTERS,
+  ActiveFilterKey,
+  activeFilterCounts,
+  buildActiveSections,
+} from "../../lib/orderFilters";
 
 interface ActiveOrder {
   _id: string;
@@ -32,6 +43,7 @@ export default function OrdersScreen() {
     | undefined;
   const registerToken = useMutation(api.notifications.registerPushToken);
   const { role, logout } = useAuth();
+  const [filter, setFilter] = useState<ActiveFilterKey>("all");
   const prevOrderIdsRef = useRef<Set<string>>(new Set());
   const isInitialLoadRef = useRef(true);
 
@@ -79,9 +91,11 @@ export default function OrdersScreen() {
     prevOrderIdsRef.current = currentIds;
   }, [orders]);
 
-  const pendingCount =
-    orders?.filter((o) => o.status === "pending").length ?? 0;
-  const sections = useMemo(() => buildActiveSections(orders ?? []), [orders]);
+  const counts = useMemo(() => activeFilterCounts(orders ?? []), [orders]);
+  const sections = useMemo(
+    () => buildActiveSections(orders ?? [], filter),
+    [orders, filter]
+  );
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
@@ -89,9 +103,7 @@ export default function OrdersScreen() {
         <View>
           <AppText variant="display">Active Orders</AppText>
           <AppText variant="muted" style={styles.pendingBadge}>
-            {pendingCount > 0
-              ? `${pendingCount} pending`
-              : "All caught up"}
+            {counts.new > 0 ? `${counts.new} pending` : "All caught up"}
           </AppText>
         </View>
         <Pressable
@@ -107,6 +119,22 @@ export default function OrdersScreen() {
         </Pressable>
       </View>
 
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.filtersScroll}
+        contentContainerStyle={styles.filters}
+      >
+        {ACTIVE_FILTERS.map((f) => (
+          <Pill
+            key={f.key}
+            label={`${f.label} · ${counts[f.key]}`}
+            active={filter === f.key}
+            onPress={() => setFilter(f.key)}
+          />
+        ))}
+      </ScrollView>
+
       {!orders ? (
         <View style={styles.center}>
           <AppText variant="muted">Loading orders…</AppText>
@@ -114,10 +142,14 @@ export default function OrdersScreen() {
       ) : sections.length === 0 ? (
         <View style={styles.center}>
           <AppText variant="title" style={styles.emptyTitle}>
-            No active orders
+            {counts.all === 0 ? "No active orders" : "Nothing in this filter"}
           </AppText>
           <AppText variant="muted" style={styles.emptySubtext}>
-            New orders appear here in real time
+            {counts.all === 0
+              ? "New orders appear here in real time"
+              : `${counts.all} active order${
+                  counts.all === 1 ? "" : "s"
+                } under “All”`}
           </AppText>
         </View>
       ) : (
@@ -160,6 +192,15 @@ const styles = StyleSheet.create({
   },
   logoutPressed: { opacity: 0.7 },
   logoutText: { color: colors.textSecondary },
+  // A horizontal ScrollView stretches to fill a flex column by default; pin it
+  // to its content height so the list below keeps the remaining space.
+  filtersScroll: { flexGrow: 0, flexShrink: 0 },
+  filters: {
+    flexDirection: "row",
+    paddingHorizontal: spacing.md,
+    paddingBottom: spacing.sm + 4,
+    gap: spacing.sm,
+  },
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
   emptyTitle: { marginBottom: 4 },
   emptySubtext: {},
