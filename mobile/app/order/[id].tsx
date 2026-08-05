@@ -41,15 +41,27 @@ export default function OrderDetailScreen() {
   const actionLabel = ACTION_LABELS[order.status];
   const isClosed = ["completed", "cancelled"].includes(order.status);
 
+  // A rejected mutation used to disappear into an unhandled promise, leaving
+  // the button looking like it did nothing. Always surface the failure.
+  const applyStatus = async (status: string) => {
+    try {
+      await updateStatus({ orderId: id as any, status: status as any });
+      return true;
+    } catch (error) {
+      console.warn("Failed to update order status:", error);
+      Alert.alert(
+        "Update Failed",
+        "The order status could not be updated. Check your connection and try again."
+      );
+      return false;
+    }
+  };
+
   const handleStatusUpdate = () => {
     if (!nextStatus) return;
     Alert.alert("Update Status", `Change order status to "${nextStatus}"?`, [
       { text: "Cancel", style: "cancel" },
-      {
-        text: "Confirm",
-        onPress: () =>
-          updateStatus({ orderId: id as any, status: nextStatus as any }),
-      },
+      { text: "Confirm", onPress: () => void applyStatus(nextStatus) },
     ]);
   };
 
@@ -60,8 +72,7 @@ export default function OrderDetailScreen() {
         text: "Yes, Cancel",
         style: "destructive",
         onPress: async () => {
-          await updateStatus({ orderId: id as any, status: "cancelled" });
-          router.back();
+          if (await applyStatus("cancelled")) router.back();
         },
       },
     ]);

@@ -1,6 +1,11 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { api } from "./_generated/api";
+import {
+  CLOSED_STATUSES,
+  selectHistoryOrders,
+  statusPatch,
+} from "./lib/orderHistory";
 
 export const createOrder = mutation({
   args: {
@@ -115,10 +120,7 @@ export const updateOrderStatus = mutation({
     ),
   },
   handler: async (ctx, args) => {
-    await ctx.db.patch(args.orderId, {
-      status: args.status,
-      updatedAt: Date.now(),
-    });
+    await ctx.db.patch(args.orderId, statusPatch(args.status, Date.now()));
   },
 });
 
@@ -164,19 +166,22 @@ export const getCompletedOrders = query({
     endTime: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    let q;
-    if (args.startTime !== undefined && args.endTime !== undefined) {
-      q = ctx.db
-        .query("orders")
-        .withIndex("by_createdAt", (idx) =>
-          idx.gte("createdAt", args.startTime!).lte("createdAt", args.endTime!)
-        );
-    } else {
-      q = ctx.db.query("orders").withIndex("by_createdAt");
-    }
-    const orders = await q.order("desc").collect();
-    return orders.filter((o) =>
-      ["completed", "cancelled"].includes(o.status)
+    // Fetched by status rather than by a createdAt index range: History windows
+    // on closing time, and `completedAt` is absent on legacy rows, so no single
+    // timestamp index covers the set. Closed orders are a bounded working set
+    // for a single cafe, so filtering the window in memory is fine here.
+    const byStatus = await Promise.all(
+      CLOSED_STATUSES.map((status) =>
+        ctx.db
+          .query("orders")
+          .withIndex("by_status", (idx) => idx.eq("status", status))
+          .collect()
+      )
     );
+
+    return selectHistoryOrders(byStatus.flat(), {
+      startTime: args.startTime,
+      endTime: args.endTime,
+    });
   },
 });
