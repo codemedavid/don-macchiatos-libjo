@@ -21,21 +21,23 @@ export interface OrderSection<T> {
 
 export const OTHER_SECTION_KEY = "other";
 
-const SECTION_ORDER: { key: string; title: string; statuses: string[] }[] = [
-  { key: "new", title: "New", statuses: ["pending"] },
-  {
-    key: "inProgress",
-    title: "In Progress",
-    statuses: ["confirmed", "preparing"],
-  },
-  { key: "ready", title: "Ready for Handover", statuses: ["ready"] },
+export type ActiveSectionKey = "new" | "inProgress" | "ready";
+export type ActiveFilterKey = "all" | ActiveSectionKey;
+
+/** The one place a status is mapped to a bucket. */
+const STATUS_BUCKETS: Record<ActiveSectionKey, readonly string[]> = {
+  new: ["pending"],
+  inProgress: ["confirmed", "preparing"],
+  ready: ["ready"],
+};
+
+const SECTION_ORDER: { key: ActiveSectionKey; title: string }[] = [
+  { key: "new", title: "New" },
+  { key: "inProgress", title: "In Progress" },
+  { key: "ready", title: "Ready for Handover" },
 ];
 
-const SECTIONED_STATUSES = new Set(
-  SECTION_ORDER.flatMap((section) => section.statuses)
-);
-
-export type ActiveFilterKey = "all" | "new" | "inProgress" | "ready";
+const SECTIONED_STATUSES = new Set(Object.values(STATUS_BUCKETS).flat());
 
 export const ACTIVE_FILTERS: { key: ActiveFilterKey; label: string }[] = [
   { key: "all", label: "All" },
@@ -58,12 +60,12 @@ export function buildActiveSections<T extends FilterableOrder>(
   orders: readonly T[],
   filter: ActiveFilterKey = "all"
 ): OrderSection<T>[] {
-  const sections = SECTION_ORDER.filter(
+  const sections: OrderSection<T>[] = SECTION_ORDER.filter(
     (section) => filter === "all" || section.key === filter
   ).map((section) => ({
     key: section.key,
     title: section.title,
-    data: orders.filter((o) => section.statuses.includes(o.status)),
+    data: orders.filter((o) => STATUS_BUCKETS[section.key].includes(o.status)),
   }));
 
   if (filter === "all") {
@@ -88,11 +90,8 @@ export function buildActiveSections<T extends FilterableOrder>(
 export function activeFilterCounts<T extends FilterableOrder>(
   orders: readonly T[]
 ): Record<ActiveFilterKey, number> {
-  const countOf = (key: ActiveFilterKey) => {
-    const statuses =
-      SECTION_ORDER.find((section) => section.key === key)?.statuses ?? [];
-    return orders.filter((o) => statuses.includes(o.status)).length;
-  };
+  const countOf = (key: ActiveSectionKey) =>
+    orders.filter((o) => STATUS_BUCKETS[key].includes(o.status)).length;
 
   return {
     all: orders.length,
