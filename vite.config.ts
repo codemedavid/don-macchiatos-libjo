@@ -15,7 +15,21 @@ export default defineConfig({
     include: ['src/**/*.test.{ts,tsx}'],
     coverage: {
       provider: 'v8',
-      include: ['src/lib/**/*.ts', 'src/components/OrderTracking.tsx'],
+      // Scoped to the order-tracking feature. The rest of src/ predates this
+      // test setup and is not yet covered.
+      include: [
+        'src/lib/orderStatus.ts',
+        'src/lib/orderLabels.ts',
+        'src/lib/chime.ts',
+        'src/hooks/useReadyAlert.ts',
+        'src/components/OrderTracking.tsx',
+      ],
+      thresholds: {
+        statements: 80,
+        branches: 80,
+        functions: 80,
+        lines: 80,
+      },
     },
   },
 });
