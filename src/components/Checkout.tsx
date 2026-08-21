@@ -3,16 +3,38 @@ import { ArrowLeft, Clock } from 'lucide-react';
 import { CartItem, CartBundleItem, PaymentMethod, ServiceType } from '../types';
 import { useMutation, useAction } from "convex/react";
 import { api } from "../../convex/_generated/api";
+import OrderTracker from './OrderTracker';
+import type { TrackedOrder } from './OrderTracking';
+import { readyChime } from '../lib/chime';
 
 interface CheckoutProps {
   cartItems: CartItem[];
   bundleCartItems: CartBundleItem[];
   totalPrice: number;
   onBack: () => void;
+  /** Called once the order is safely stored, so the cart can be emptied. */
+  onOrderPlaced?: () => void;
+  /** Called when the customer wants to start a fresh order from the tracker. */
+  onStartNewOrder?: () => void;
 }
 
-const Checkout: React.FC<CheckoutProps> = ({ cartItems, bundleCartItems, totalPrice, onBack }) => {
+interface PlacedOrder {
+  orderId: string;
+  order: TrackedOrder;
+}
+
+const Checkout: React.FC<CheckoutProps> = ({
+  cartItems,
+  bundleCartItems,
+  totalPrice,
+  onBack,
+  onOrderPlaced,
+  onStartNewOrder,
+}) => {
   const [step, setStep] = useState<'details' | 'payment'>('details');
+  const [placedOrder, setPlacedOrder] = useState<PlacedOrder | null>(null);
+  const [isPlacingOrder, setIsPlacingOrder] = useState(false);
+  const [placeOrderError, setPlaceOrderError] = useState<string | null>(null);
   const [customerName, setCustomerName] = useState('');
   const [contactNumber, setContactNumber] = useState('');
   const [serviceType, setServiceType] = useState<ServiceType>('dine-in');
@@ -28,7 +50,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, bundleCartItems, totalPr
   // Scroll to top when step changes
   React.useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [step]);
+  }, [step, placedOrder]);
 
   const paymentMethods = {
     cash: { name: 'Cash', icon: '' },
@@ -40,137 +62,110 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, bundleCartItems, totalPr
     setStep('payment');
   };
 
-  const handlePlaceOrder = async () => {
-    const timeInfo = serviceType === 'pickup'
-      ? (pickupTime === 'custom' ? customTime : `${pickupTime} minutes`)
-      : '';
+  const resolvedPickupTime =
+    serviceType === 'pickup'
+      ? pickupTime === 'custom'
+        ? customTime
+        : `${pickupTime} minutes`
+      : undefined;
 
-    // Build regular items text
-    const regularItemsText = cartItems.map(item => {
-      let itemDetails = `• ${item.name}`;
-      if (item.selectedVariations && item.selectedVariations.length > 0) {
-        itemDetails += ` (${item.selectedVariations.map(v => `${v.type}: ${v.name}`).join(', ')})`;
-      }
-      if (item.selectedServingPreference) {
-        itemDetails += ` [${item.selectedServingPreference.name}]`;
-      }
-      if (item.selectedAddOns && item.selectedAddOns.length > 0) {
-        itemDetails += ` + ${item.selectedAddOns.map(addOn => addOn.name).join(', ')}`;
-      }
-      itemDetails += ` x${item.quantity} - ₱${item.totalPrice * item.quantity}`;
-      return itemDetails;
-    }).join('\n');
+  const buildOrderItems = () =>
+    cartItems.map((item) => ({
+      name: item.name,
+      quantity: item.quantity,
+      totalPrice: item.totalPrice,
+      variations: item.selectedVariations?.map((v) => ({
+        type: v.type,
+        name: v.name,
+      })),
+      servingPreference: item.selectedServingPreference?.name,
+      addOns: item.selectedAddOns?.map((a) => a.name),
+    }));
 
-    // Build bundle items text
-    const bundleItemsText = bundleCartItems.map(bundle => {
-      let bundleText = `📦 BUNDLE: ${bundle.bundleName} x${bundle.quantity} - ₱${bundle.bundlePrice * bundle.quantity}`;
-      bundle.items.forEach(item => {
-        let itemLine = `    • ${item.name}`;
-        if (item.selectedVariations && item.selectedVariations.length > 0) {
-          itemLine += ` (${item.selectedVariations.map(v => `${v.type}: ${v.name}`).join(', ')})`;
-        }
-        if (item.selectedServingPreference) {
-          itemLine += ` [${item.selectedServingPreference.name}]`;
-        }
-        if (item.selectedAddOns && item.selectedAddOns.length > 0) {
-          itemLine += ` + ${item.selectedAddOns.map(addOn => addOn.name).join(', ')}`;
-        }
-        bundleText += `\n${itemLine}`;
-      });
-      return bundleText;
-    }).join('\n');
-
-    const allItemsText = [regularItemsText, bundleItemsText].filter(Boolean).join('\n');
-
-    const orderDetails = `
-🛒 DON MACCHIATOS ORDER
-
-${customerName ? `👤 Customer: ${customerName}` : ''}
-${contactNumber ? `📞 Contact: ${contactNumber}` : ''}
-📍 Service: ${serviceType.charAt(0).toUpperCase() + serviceType.slice(1)}
-${serviceType === 'delivery' ? `🏠 Address: ${address}` : ''}
-${serviceType === 'pickup' ? `⏰ Pickup Time: ${timeInfo}` : ''}
-
-
-📋 ORDER DETAILS:
-${allItemsText}
-
-💰 TOTAL: ₱${totalPrice}
-
-💳 Payment Method: ${paymentMethods[paymentMethod].name}
-
-${notes ? `📝 Notes: ${notes}` : ''}
-
-Please confirm this order to proceed. Thank you for choosing Don Macchiatos! ☕
-    `.trim();
-
-    // Save order to Convex
-    try {
-      const convexItems = cartItems.map((item) => ({
+  const buildOrderBundles = () =>
+    bundleCartItems.map((bundle) => ({
+      bundleName: bundle.bundleName,
+      quantity: bundle.quantity,
+      bundlePrice: bundle.bundlePrice,
+      items: bundle.items.map((item) => ({
         name: item.name,
-        quantity: item.quantity,
-        totalPrice: item.totalPrice,
         variations: item.selectedVariations?.map((v) => ({
           type: v.type,
           name: v.name,
         })),
         servingPreference: item.selectedServingPreference?.name,
         addOns: item.selectedAddOns?.map((a) => a.name),
-      }));
+      })),
+    }));
 
-      const convexBundleItems = bundleCartItems.map((bundle) => ({
-        bundleName: bundle.bundleName,
-        quantity: bundle.quantity,
-        bundlePrice: bundle.bundlePrice,
-        items: bundle.items.map((item) => ({
-          name: item.name,
-          variations: item.selectedVariations?.map((v) => ({
-            type: v.type,
-            name: v.name,
-          })),
-          servingPreference: item.selectedServingPreference?.name,
-          addOns: item.selectedAddOns?.map((a) => a.name),
-        })),
-      }));
+  const handlePlaceOrder = async () => {
+    if (isPlacingOrder) return;
 
+    setIsPlacingOrder(true);
+    setPlaceOrderError(null);
+
+    // The click is the user gesture that unlocks audio, so the "order ready"
+    // ring is allowed to play later without another interaction.
+    readyChime.prime();
+
+    const orderItems = buildOrderItems();
+    const orderBundles = buildOrderBundles();
+
+    try {
       const result = await createOrder({
         customerName,
         contactNumber,
         serviceType,
-        address: serviceType === "delivery" ? address : undefined,
-        pickupTime:
-          serviceType === "pickup"
-            ? pickupTime === "custom"
-              ? customTime
-              : `${pickupTime} minutes`
-            : undefined,
+        address: serviceType === 'delivery' ? address : undefined,
+        pickupTime: resolvedPickupTime,
         paymentMethod,
-        items: convexItems,
-        bundleItems:
-          convexBundleItems.length > 0 ? convexBundleItems : undefined,
+        items: orderItems,
+        bundleItems: orderBundles.length > 0 ? orderBundles : undefined,
         notes: notes || undefined,
         total: totalPrice,
       });
 
-      // Send push notification (fire and forget)
+      // Staff push notification — best effort, never blocks the customer.
       sendNotification({
         orderNumber: result.orderNumber,
         customerName,
         total: totalPrice,
       }).catch(() => {});
+
+      setPlacedOrder({
+        orderId: result.orderId,
+        order: {
+          orderNumber: result.orderNumber,
+          status: 'pending',
+          customerName: customerName || undefined,
+          contactNumber: contactNumber || undefined,
+          serviceType,
+          address: serviceType === 'delivery' ? address : undefined,
+          pickupTime: resolvedPickupTime,
+          paymentMethod,
+          notes: notes || undefined,
+          items: orderItems,
+          bundleItems: orderBundles.length > 0 ? orderBundles : undefined,
+          total: totalPrice,
+        },
+      });
+
+      onOrderPlaced?.();
     } catch (error) {
-      console.warn("Failed to save order to Convex:", error);
+      setPlaceOrderError(
+        error instanceof Error && error.message
+          ? error.message
+          : 'Unknown error'
+      );
+    } finally {
+      setIsPlacingOrder(false);
     }
+  };
 
-    const encodedMessage = encodeURIComponent(orderDetails);
-
-    // Copy order text to clipboard as fallback in case prefilled text doesn't work
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(orderDetails).catch(() => {});
-    }
-
-    window.location.href = `https://www.messenger.com/t/donmacchiatospdi?text=${encodedMessage}`;
-
+  const handleNewOrder = () => {
+    setPlacedOrder(null);
+    setStep('details');
+    (onStartNewOrder ?? onBack)();
   };
 
   const isDetailsValid =
@@ -237,6 +232,16 @@ Please confirm this order to proceed. Thank you for choosing Don Macchiatos! ☕
       ))}
     </div>
   );
+
+  if (placedOrder) {
+    return (
+      <OrderTracker
+        orderId={placedOrder.orderId}
+        placedOrder={placedOrder.order}
+        onNewOrder={handleNewOrder}
+      />
+    );
+  }
 
   if (step === 'details') {
     return (
@@ -535,15 +540,31 @@ Please confirm this order to proceed. Thank you for choosing Don Macchiatos! ☕
             </div>
           </div>
 
+          {placeOrderError && (
+            <div
+              role="alert"
+              className="mb-4 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+            >
+              We could not place your order ({placeOrderError}). Please check
+              your connection and try again.
+            </div>
+          )}
+
           <button
             onClick={handlePlaceOrder}
-            className="w-full py-4 rounded-xl font-medium text-lg transition-all duration-200 transform bg-black text-white hover:bg-gray-800 hover:scale-[1.02]"
+            disabled={isPlacingOrder}
+            className={`w-full py-4 rounded-xl font-medium text-lg transition-all duration-200 transform ${
+              isPlacingOrder
+                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                : 'bg-black text-white hover:bg-gray-800 hover:scale-[1.02]'
+            }`}
           >
-            Place Order via Messenger
+            {isPlacingOrder ? 'Placing Order…' : 'Place Order'}
           </button>
 
           <p className="text-xs text-gray-500 text-center mt-3">
-            You'll be redirected to Facebook Messenger. Your order details will be copied to your clipboard — just paste if the message isn't prefilled.
+            You'll get an order number and a live status tracker right here — we'll
+            ring when your order is ready.
           </p>
         </div>
       </div>
