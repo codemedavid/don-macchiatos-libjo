@@ -275,6 +275,8 @@ function MainApp() {
           bundleCartItems={cart.bundleCartItems}
           totalPrice={cart.getTotalPrice()}
           onBack={() => handleViewChange('cart')}
+          onOrderPlaced={cart.clearCart}
+          onStartNewOrder={() => handleViewChange('menu')}
         />
       )}
 
