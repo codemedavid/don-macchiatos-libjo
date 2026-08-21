@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { ArrowLeft, Clock } from 'lucide-react';
 import { CartItem, CartBundleItem, PaymentMethod, ServiceType } from '../types';
-import { useMutation, useAction } from "convex/react";
+import { useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import OrderTracker from './OrderTracker';
 import type { TrackedOrder } from './OrderTracking';
 import { readyChime } from '../lib/chime';
+import { PAYMENT_ICONS, PAYMENT_LABELS } from '../lib/orderLabels';
 
 interface CheckoutProps {
   cartItems: CartItem[];
@@ -45,18 +46,11 @@ const Checkout: React.FC<CheckoutProps> = ({
   const [notes, setNotes] = useState('');
 
   const createOrder = useMutation(api.orders.createOrder);
-  const sendNotification = useAction(api.notifications.sendNewOrderNotification);
 
   // Scroll to top when step changes
   React.useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [step, placedOrder]);
-
-  const paymentMethods = {
-    cash: { name: 'Cash', icon: '' },
-    gcash: { name: 'GCash', icon: '💳' },
-    cards: { name: 'Credit/Debit Cards', icon: '💳' }
-  };
 
   const handleProceedToPayment = () => {
     setStep('payment');
@@ -125,13 +119,8 @@ const Checkout: React.FC<CheckoutProps> = ({
         total: totalPrice,
       });
 
-      // Staff push notification — best effort, never blocks the customer.
-      sendNotification({
-        orderNumber: result.orderNumber,
-        customerName,
-        total: totalPrice,
-      }).catch(() => {});
-
+      // The staff push notification is scheduled server-side by createOrder,
+      // so there is nothing to fire from the client here.
       setPlacedOrder({
         orderId: result.orderId,
         order: {
@@ -398,6 +387,7 @@ const Checkout: React.FC<CheckoutProps> = ({
               </div>
 
               <button
+                type="button"
                 onClick={handleProceedToPayment}
                 disabled={!isDetailsValid}
                 className={`w-full py-4 rounded-xl font-medium text-lg transition-all duration-200 transform ${isDetailsValid
@@ -458,8 +448,8 @@ const Checkout: React.FC<CheckoutProps> = ({
           <div className="bg-beige-50 rounded-lg p-6 mb-6">
             <h3 className="font-medium text-black mb-2">Selected Payment Method</h3>
             <div className="flex items-center space-x-3">
-              <span className="text-2xl">{paymentMethods[paymentMethod].icon}</span>
-              <span className="text-lg font-medium text-black">{paymentMethods[paymentMethod].name}</span>
+              <span className="text-2xl">{PAYMENT_ICONS[paymentMethod]}</span>
+              <span className="text-lg font-medium text-black">{PAYMENT_LABELS[paymentMethod]}</span>
             </div>
             <p className="text-xl font-semibold text-black mt-4">Total Amount: ₱{totalPrice}</p>
           </div>

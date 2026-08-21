@@ -1,5 +1,6 @@
 import { BellRing, Check, CircleSlash, Loader2 } from 'lucide-react';
 import type { PaymentMethod, ServiceType } from '../types';
+import { PAYMENT_LABELS, SERVICE_LABELS } from '../lib/orderLabels';
 import {
   STATUS_DESCRIPTIONS,
   STATUS_LABELS,
@@ -51,19 +52,6 @@ type Props = {
   /** False while the live status has not been confirmed by the server yet. */
   isLive?: boolean;
   onNewOrder: () => void;
-};
-
-const PAYMENT_LABELS: Record<PaymentMethod, string> = {
-  cash: 'Cash',
-  gcash: 'GCash',
-  'bank-transfer': 'Bank Transfer',
-  cards: 'Credit/Debit Cards',
-};
-
-const SERVICE_LABELS: Record<ServiceType, string> = {
-  'dine-in': 'Dine In',
-  pickup: 'Pickup',
-  delivery: 'Delivery',
 };
 
 const describeItem = (item: TrackedItem | TrackedBundle['items'][number]) => {
